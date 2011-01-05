@@ -5,8 +5,6 @@ require 'tasks/standalone_migrations'
 require 'appstats/tasks'
 
 begin
-  AppstatsTasks.new
-  
   MigratorTasks.new do |t|
     t.migrations = "db/migrations"
     t.config = "db/config.yml"
