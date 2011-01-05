@@ -1,2 +1,0 @@
-
-For more information on appstats, see http://appstats.rubyforge.org
