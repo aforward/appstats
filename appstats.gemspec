@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.summary     = %q{Provide usage statistics about how your application is being used}
   s.description = %q{Provide usage statistics about how your application is being used}
 
-  s.add_dependency('rails')
+  s.add_dependency('rails','2.3.8')
   
   s.add_development_dependency('rspec')
   s.add_development_dependency('ZenTest')
