@@ -12,12 +12,15 @@ Gem::Specification.new do |s|
   s.summary     = %q{Provide usage statistics about how your application is being used}
   s.description = %q{Provide usage statistics about how your application is being used}
 
-  s.rubyforge_project = "appstats"
-  # s.add_dependency('hoe', '>= 2.1.0')
-  # s.add_dependency('newgem')
-  s.add_dependency('activerecord')
+  s.add_dependency('rails')
   
   s.add_development_dependency('rspec')
+  s.add_development_dependency('ZenTest')
+  s.add_development_dependency('standalone_migrations')
+  s.add_development_dependency('mysql')
+  
+  # only on a mac machine
+  # s.add_development_dependency('autotest-fsevent')
 
 
   s.files         = `git ls-files`.split("\n")

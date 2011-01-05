@@ -1,6 +1,8 @@
-$:.unshift(File.dirname(__FILE__)) unless
-  $:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname(__FILE__)))
-  
+require 'rubygems'
+require 'active_record'
+require "#{File.dirname(__FILE__)}/appstats/appstats_entry"
+require "#{File.dirname(__FILE__)}/appstats/tasks"
+
 module Appstats
   # Your code goes here...
 end

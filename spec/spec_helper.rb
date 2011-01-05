@@ -8,6 +8,9 @@ require File.dirname(__FILE__) + '/../lib/appstats'
 
 RSpec.configure do |config|
 
+  dbconfig = YAML::load(File.open('db/config.yml'))
+  ActiveRecord::Base.establish_connection(dbconfig['test'])
+
   # == Mock Framework
   #
   # If you prefer to use mocha, flexmock or RR, uncomment the appropriate line:
