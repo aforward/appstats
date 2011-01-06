@@ -31,11 +31,11 @@ class AppstatsTasks < ::Rake::TaskLib
       desc "Install or upgrade this gem (adds migration files, etc)"
       task :install do
         puts "#{File.dirname((__FILE__))}"
-        unless File.exists?(migrations)
-          puts "Creating migrate directory\n  #{@app_migrate}"
+        unless File.exists?(@app_migrate)
+          puts "Creating migrate directory"
           mkdir @app_migrate
         end
-        puts "Moving migrations files from:\n   #{@gem_migrations}\nTo\n   #{@app_migrate}"
+        puts "Moving migrations files from:\n> #{@gem_migrations}\nTo\n> #{@app_migrate}"
         system "cp -R #{@gem_migrations}/* #{@app_migrate}"
       end
       
