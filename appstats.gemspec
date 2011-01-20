@@ -12,17 +12,16 @@ Gem::Specification.new do |s|
   s.summary     = %q{Provide usage statistics about how your application is being used}
   s.description = %q{Provide usage statistics about how your application is being used}
 
-  s.add_dependency('rails','2.3.8')
+  # Models are to be used in Rails 3 environment, but the logger can work with Rails 2 apps
+  # But, for testing appstats itself, you will need Rails 3
+  s.add_dependency('rails','>=2.3.0')
+  # s.add_dependency('rails','3.0.3')
   
   s.add_development_dependency('rspec')
   s.add_development_dependency('ZenTest')
   s.add_development_dependency('standalone_migrations')
   s.add_development_dependency('mysql')
   
-  # only on a mac machine
-  # s.add_development_dependency('autotest-fsevent')
-
-
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
