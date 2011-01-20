@@ -33,7 +33,7 @@ module Appstats
     def define
       namespace :appstats do
         namespace :install do
-          desc "Install the migrations for this gem (for the database aspect of the gem)" do
+          desc "Install the migrations for this gem (for the database aspect of the gem)"
           task :migrations do
             unless File.exists?(@app_migrate)
               puts "Creating migrate directory"
@@ -43,7 +43,8 @@ module Appstats
             system "cp -R #{@gem_migrations}/* #{@app_migrate}"
           end
           
-          desc "Install the logger for this gem (for application instances that log statistics)" do
+          desc "Install the logger for this gem (for application instances that log statistics)"
+          task :logger do
             if File.exists?(@appstats_initializer)
               puts "Initialize [#{@appstats_initializer}] already exists, creating example file [#{@appstats_initializer}.example] to see any new changes since you last installed this gem"
               system "cp -R #{@appstats_initializer_template} #{@appstats_initializer}.example"
@@ -55,7 +56,6 @@ module Appstats
         end
       end
     end
-
   end
 end
 

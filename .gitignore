@@ -3,3 +3,4 @@ pkg/*
 .bundle
 db/migrate
 doc
+config
