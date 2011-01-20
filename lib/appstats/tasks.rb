@@ -18,6 +18,8 @@ module Appstats
       @app_migrate = "#{base}/db/migrate"
       @config = "#{base}/db/config.yml"
       @schema = "#{base}/db/schema.rb"
+      @appstats_initializer = "#{base}/config/initializers/appstats.rb"
+      @appstats_initializer_template = "#{here}/lib/templates/appstats_config.rb"
       @env = 'DB'
       @default_env = 'development'
       @verbose = true
@@ -30,18 +32,27 @@ module Appstats
   
     def define
       namespace :appstats do
-      
-        desc "Install or upgrade this gem (adds migration files, etc)"
-        task :install do
-          puts "#{File.dirname((__FILE__))}"
-          unless File.exists?(@app_migrate)
-            puts "Creating migrate directory"
-            mkdir @app_migrate
+        namespace :install do
+          desc "Install the migrations for this gem (for the database aspect of the gem)" do
+          task :migrations do
+            unless File.exists?(@app_migrate)
+              puts "Creating migrate directory"
+              mkdir @app_migrate
+            end
+            puts "Moving migrations files from:\n> #{@gem_migrations}\nTo\n> #{@app_migrate}"
+            system "cp -R #{@gem_migrations}/* #{@app_migrate}"
           end
-          puts "Moving migrations files from:\n> #{@gem_migrations}\nTo\n> #{@app_migrate}"
-          system "cp -R #{@gem_migrations}/* #{@app_migrate}"
+          
+          desc "Install the logger for this gem (for application instances that log statistics)" do
+            if File.exists?(@appstats_initializer)
+              puts "Initialize [#{@appstats_initializer}] already exists, creating example file [#{@appstats_initializer}.example] to see any new changes since you last installed this gem"
+              system "cp -R #{@appstats_initializer_template} #{@appstats_initializer}.example"
+            else
+              puts "Creating default initializer [#{@appstats_initializer}]"
+              system "cp -R #{@appstats_initializer_template} #{@appstats_initializer}"
+            end
+          end
         end
-      
       end
     end
 
