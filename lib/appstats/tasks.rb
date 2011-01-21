@@ -18,7 +18,7 @@ module Appstats
       @app_migrate = "#{base}/db/migrate"
       @config = "#{base}/db/config.yml"
       @schema = "#{base}/db/schema.rb"
-      @appstats_initializer = "#{base}/config/initializers/appstats.rb"
+      @appstats_initializer = "#{base}/config/initializers/appstats_config.rb"
       @appstats_initializer_template = "#{here}/lib/templates/appstats_config.rb"
       @env = 'DB'
       @default_env = 'development'
