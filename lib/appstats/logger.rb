@@ -99,7 +99,7 @@ module Appstats
       def self.format_input(raw_input,newline_delimiter)
         return raw_input if raw_input.nil?
         return raw_input unless raw_input.kind_of?(String)
-        raw_input.gsub(/\s/,newline_delimiter)
+        raw_input.gsub(/\n/,newline_delimiter)
       end
     
   end
