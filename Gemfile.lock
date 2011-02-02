@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    appstats (0.0.9)
+    appstats (0.0.11)
       rails (>= 2.3.0)
 
 GEM
