@@ -107,7 +107,7 @@ module Appstats
 
     describe "#entry" do
       
-      it "should outlien the to_s" do
+      it "should outline the to_s" do
         Appstats::Logger.stub!(:entry_to_s).with("address_search",{}).and_return("entry_to_s called")
         Appstats::Logger.entry("address_search")
         Appstats::Logger.raw_read.should == ["entry_to_s called"]
@@ -192,6 +192,25 @@ module Appstats
         actual = Appstats::Logger.entry_to_s("address", :server => 'market:eval=-n')
         actual.should == expected
       end
+      
+      it "should convert newlines in action" do
+        expected = "0.0.9 setup[:,=,-n] 2010-09-21 23:15:20 action=address_-nsearch"
+        actual = Appstats::Logger.entry_to_s("address_\nsearch")
+        actual.should == expected
+      end
+
+      it "should convert newlines in context" do
+        expected = "0.0.9 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search : blah=some-nlong-nstatement"
+        actual = Appstats::Logger.entry_to_s("address_search",:blah => "some\nlong\nstatement")
+        actual.should == expected
+      end
+      
+      it "should convert newlines based on the delimiter" do
+        expected = "0.0.9 setup[::,==,--n] 2010-09-21 23:15:20 action==address:=--nsearch-n"
+        actual = Appstats::Logger.entry_to_s("address:=\nsearch-n")
+        actual.should == expected
+      end
+      
       
     end
     

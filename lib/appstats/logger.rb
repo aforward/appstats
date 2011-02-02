@@ -38,9 +38,9 @@ module Appstats
       contexts = contexts.merge(default_contexts)
       section_delimiter, assign_delimiter, newline_delimiter = determine_delimiters(contexts.merge(:action => action))
       answer = "#{Appstats::VERSION} setup[#{section_delimiter},#{assign_delimiter},#{newline_delimiter}] "
-      answer += "#{now} action#{assign_delimiter}#{action}"
+      answer += "#{now} action#{assign_delimiter}#{format_input(action,newline_delimiter)}"
       contexts.keys.sort.each do |key|
-        answer += " #{section_delimiter} #{key}#{assign_delimiter}#{contexts[key]}"
+        answer += " #{section_delimiter} #{key}#{assign_delimiter}#{format_input(contexts[key],newline_delimiter)}"
       end
       answer
     end
@@ -94,7 +94,11 @@ module Appstats
         end
         [section_delimiter,assign_delimiter,newline_delimiter]
       end
-    
+      
+      def self.format_input(raw_input,newline_delimiter)
+        return raw_input if raw_input.nil?
+        raw_input.gsub(/\s/,newline_delimiter)
+      end
     
   end
 end
