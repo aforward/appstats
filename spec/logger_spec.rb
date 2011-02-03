@@ -152,7 +152,6 @@ module Appstats
          actual = Appstats::Logger.entry_to_hash("0.0.13 setup[::,==,--n] 2010-09-21 23:15:20 action==address :: server==market:eval=-n")
          actual.should == expected
        end
-    
        
      end
     

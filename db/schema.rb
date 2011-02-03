@@ -10,12 +10,22 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110105221941) do
+ActiveRecord::Schema.define(:version => 20110203151635) do
+
+  create_table "appstats_contexts", :force => true do |t|
+    t.string   "context_key"
+    t.string   "context_value"
+    t.integer  "context_int"
+    t.float    "context_float"
+    t.integer  "appstats_entry_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "appstats_entries", :force => true do |t|
-    t.string   "entry_type"
-    t.string   "name",        :null => false
-    t.string   "description"
+    t.string   "action"
+    t.datetime "occurred_at"
+    t.text     "raw_entry"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

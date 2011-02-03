@@ -3,10 +3,30 @@ module Appstats
   class Entry < ActiveRecord::Base
     set_table_name "appstats_entries"
     
-    attr_accessible :entry_type, :name, :description
+    has_many :contexts, :table_name => 'appstats_contexts', :foreign_key => 'appstats_entry_id', :order => 'context_key'
+    attr_accessible :action, :occurred_at, :raw_entry
   
     def to_s
-      "Entry [type],[name],[description]"
+      return "No Entry" if action.nil? || action == ''
+      return action if occurred_at.nil?
+      "#{action} at #{occurred_at.strftime('%Y-%m-%d %H:%M:%S')}"
+    end
+    
+    def self.load_from_logger(action_and_contexts)
+      return if action_and_contexts.nil? || action_and_contexts == ''
+      hash = Logger.entry_to_hash(action_and_contexts)
+      entry = Appstats::Entry.new(:action => hash[:action], :raw_entry => action_and_contexts)
+      entry.occurred_at = Time.parse(hash[:timestamp]) unless hash[:timestamp].nil?
+      
+      hash.each do |key,value|
+        next if key == :action
+        next if key == :timestamp
+        context = Appstats::Context.create(:context_key => key, :context_value => value)
+        entry.contexts<< context
+      end
+      
+      entry.save
+      entry
     end
   
   end
