@@ -15,7 +15,8 @@ Gem::Specification.new do |s|
   # Models are to be used in Rails 3 environment, but the logger can work with Rails 2 apps
   # But, for testing appstats itself, you will need Rails 3
   s.add_dependency('rails','>=2.3.0')
-  # s.add_dependency('rails','3.0.3')
+  s.add_dependency('daemons')
+  s.add_dependency('net-scp')
   
   s.add_development_dependency('rspec')
   s.add_development_dependency('ZenTest')
