@@ -88,6 +88,9 @@ module Appstats
         @context.save.should == true
         @context.reload
         @context.entry.should == @entry
+        
+        @context = Context.last
+        @context.entry.should == @entry
       end
       
     end

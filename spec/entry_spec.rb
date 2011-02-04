@@ -164,7 +164,26 @@ module Appstats
       end
       
     end
-    
+   
+    describe "#log_collector" do
+      
+      before(:each) do
+        @log_collector = Appstats::LogCollector.new(:host => "a")
+        @log_collector.save.should == true
+      end
+      
+      it "should have a log_collector" do
+        @entry.log_collector.should == nil
+        @entry.log_collector = @log_collector
+        @entry.save.should == true
+        @entry.reload
+        @entry.log_collector.should == @log_collector
+        
+        @entry = Entry.last
+        @entry.log_collector.should == @log_collector
+      end
+      
+    end    
 
   end
 end

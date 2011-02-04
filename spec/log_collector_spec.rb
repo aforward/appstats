@@ -4,10 +4,17 @@ module Appstats
   describe LogCollector do
 
     before(:each) do
+      LogCollector.delete_all
       @log_collector = Appstats::LogCollector.new
       @login = { :host => "myhost.localnet", :user => "deployer", :password => "pass" }
       @login2 = { :host => "yourhost.localnet", :user => "deployer", :password => "ssap" }
       @logins = [@login2, @login]
+    end
+    
+    after(:each) do
+      LogCollector.all.each do |log_collector|
+        File.delete(log_collector.local_filename) if File.exists?(log_collector.local_filename)
+      end
     end
     
     def simple_path(local_path_to_filename)
@@ -40,7 +47,6 @@ module Appstats
     describe "#find_remote_files" do
       
       before(:each) do
-        LogCollector.delete_all
         @before_count = LogCollector.count
       end
       
@@ -74,7 +80,7 @@ module Appstats
       it "should fail silently for bad connections" do
         Net::SSH.should_receive(:start).with("myhost.localnet","deployer",{ :password => "pass"}).and_raise("Some bad message")
         Appstats.should_receive(:log).with(:info, "Looking for logs in [deployer@myhost.localnet:/my/path/log] labelled [mystats]")
-        Appstats.should_receive(:log).with(:error,"Something bad occurred during Appstats::LogCollector.find_remote_files")
+        Appstats.should_receive(:log).with(:error,"Something bad occurred during Appstats::LogCollector#find_remote_files")
         Appstats.should_receive(:log).with(:error,"Some bad message")
         LogCollector.find_remote_files(@login,"/my/path/log","mystats").should == 0
       end
@@ -84,9 +90,15 @@ module Appstats
     describe "#load_remote_files" do
       
       before(:each) do
-        LogCollector.delete_all
         @before_count = LogCollector.count
       end
+
+      it "should log if nothing to load" do
+        log = LogCollector.create(:status => "not_unprocessed")
+        Appstats.should_receive(:log).with(:info,"No remote logs to load.")
+        LogCollector.load_remote_files(@login,"/my/path/log",[]).should == 0
+      end
+
       
       it "should log the files loaded" do
         LogCollector.load_remote_files(@login,"/my/path/log",["app2"]).should == 1
@@ -134,28 +146,25 @@ module Appstats
     describe "#download_remote_files" do
 
       before(:each) do
-        @delete_mes = []
-        LogCollector.delete_all
         @before_count = LogCollector.count
       end
       
-      after(:each) do
-        @delete_mes.each do |filename|
-          File.delete(filename) if File.exists?(filename)
-        end
+      it "should only process unprocessed files" do
+        log = LogCollector.create(:status => "not_unprocessed")
+        Appstats.should_receive(:log).with(:info,"No remote logs to download.")
+        LogCollector.download_remote_files(@logins).should == 0
       end
       
       it "should log exceptions" do
         LogCollector.load_remote_files(@login,"/my/path/log",["app1"]).should == 1
         log1 = LogCollector.find_by_filename("/my/path/log/app1")
-        @delete_mes<< log1.local_filename
 
         scp = mock(Net::SCP)
         Net::SCP.should_receive(:start).with("myhost.localnet","deployer",{ :password => "pass"}).and_yield(scp)
         scp.should_receive(:download!).with("/my/path/log/app1",simple_path("../log/appstats_remote_log_#{log1.id}.log")).and_raise("Something bad happened again")
 
         Appstats.should_receive(:log).with(:info,"About to download 1 file(s).")
-        Appstats.should_receive(:log).with(:error,"Something bad occurred during Appstats::LogCollector.download_remote_files")
+        Appstats.should_receive(:log).with(:error,"Something bad occurred during Appstats::LogCollector#download_remote_files")
         Appstats.should_receive(:log).with(:error,"Something bad happened again")
         Appstats.should_receive(:log).with(:error, "File #{simple_path("../log/appstats_remote_log_#{log1.id}.log")} did not download.")
         Appstats.should_receive(:log).with(:info,"Downloaded 0 file(s).")
@@ -165,7 +174,6 @@ module Appstats
       it "should ignore if file not downloaded" do
         LogCollector.load_remote_files(@login,"/my/path/log",["app1"]).should == 1
         log1 = LogCollector.find_by_filename("/my/path/log/app1")
-        @delete_mes<< log1.local_filename
 
         scp = mock(Net::SCP)
         Net::SCP.should_receive(:start).with("myhost.localnet","deployer",{ :password => "pass"}).and_yield(scp)
@@ -184,8 +192,6 @@ module Appstats
         
         log1 = LogCollector.find_by_filename("/my/path/log/app1")
         log2 = LogCollector.find_by_filename("/my/path/log/app2")
-        @delete_mes<< log1.local_filename
-        @delete_mes<< log2.local_filename
         
         File.open(log1.local_filename, 'w') {|f| f.write("testfile - delete") }
         File.open(log2.local_filename, 'w') {|f| f.write("testfile - delete") }
@@ -206,7 +212,6 @@ module Appstats
         
         LogCollector.load_remote_files(@login,"/my/path/log",["app3"]).should == 1
         log3 = LogCollector.find_by_filename("/my/path/log/app3")
-        @delete_mes<< log3.local_filename
         File.open(log3.local_filename, 'w') {|f| f.write("testfile - delete") }
         
         localfile = simple_path("../log/appstats_remote_log_#{log3.id}.log")
@@ -221,5 +226,59 @@ module Appstats
       end
       
     end
+    
+    describe "#process_local_files" do
+      
+      before(:each) do
+        @entry_count = Entry.count
+      end
+      
+      it "should only process downloaded files" do
+        log = LogCollector.create(:status => "not_downloaded")
+        Appstats.should_receive(:log).with(:info,"No local logs to process.")
+        LogCollector.process_local_files.should == 0
+      end
+
+      it "should process downloaded files into entries" do
+        LogCollector.load_remote_files(@login,"/my/path/log",["appstats1"]).should == 1
+        log3 = LogCollector.find_by_filename("/my/path/log/appstats1")
+        log3.status = "downloaded" and log3.save.should == true
+        File.open(log3.local_filename, 'w') {|f| f.write(Appstats::Logger.entry_to_s("test_action1") + "\n" + Appstats::Logger.entry_to_s("test_action2")) }
+
+        Appstats.should_receive(:log).with(:info,"About to process 1 file(s).")
+        Appstats.should_receive(:log).with(:info,"  - 2 entr(ies) in #{log3.local_filename}.")
+        Appstats.should_receive(:log).with(:info,"Processed 1 file(s) with 2 entr(ies).")
+        LogCollector.process_local_files.should == 1
+        
+        log3.reload
+        log3.status.should == "processed"
+        Entry.count.should == @entry_count + 2
+        entry = Entry.last
+        entry.log_collector.should == log3
+        entry.action.should == "test_action2"
+      end
+      
+      it "should deal with exceptions" do
+        LogCollector.load_remote_files(@login,"/my/path/log",["appstats1"]).should == 1
+        log3 = LogCollector.find_by_filename("/my/path/log/appstats1")
+        log3.status = "downloaded" and log3.save.should == true
+        File.open(log3.local_filename, 'w') {|f| f.write(Appstats::Logger.entry_to_s("test_action1") + "\n" + Appstats::Logger.entry_to_s("test_action2")) }
+
+        File.stub!(:open).and_raise("bad error")
+        
+        Appstats.should_receive(:log).with(:info,"About to process 1 file(s).")
+        Appstats.should_receive(:log).with(:error,"Something bad occurred during Appstats::LogCollector#process_local_files")
+        Appstats.should_receive(:log).with(:error,"bad error")
+        Appstats.should_receive(:log).with(:info,"Processed 0 file(s) with 0 entr(ies).")
+        LogCollector.process_local_files.should == 0
+        
+        log3.reload
+        log3.status.should == "downloaded"
+        Entry.count.should == @entry_count
+      end      
+      
+    end
+    
+    
   end
 end

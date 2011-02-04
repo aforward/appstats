@@ -36,6 +36,7 @@ while($running) do
     Appstats::LogCollector.find_remote_files(remote_server,remote_server[:path],remote_server[:template])
   end
   Appstats::LogCollector.download_remote_files(appstats_config["remote_servers"])
+  Appstats::LogCollector.process_local_files
   a_day_in_seconds = 60*60*24
   sleep a_day_in_seconds
 end

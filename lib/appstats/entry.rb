@@ -4,6 +4,8 @@ module Appstats
     set_table_name "appstats_entries"
     
     has_many :contexts, :table_name => 'appstats_contexts', :foreign_key => 'appstats_entry_id', :order => 'context_key'
+    belongs_to :log_collector, :foreign_key => "appstats_log_collector_id"
+    
     attr_accessible :action, :occurred_at, :raw_entry
   
     def to_s

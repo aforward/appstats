@@ -19,13 +19,18 @@ module Appstats
          load_remote_files(remote_login,path,all_files)
         end
       rescue Exception => e
-        Appstats.log(:error,"Something bad occurred during Appstats::LogCollector.find_remote_files")
+        Appstats.log(:error,"Something bad occurred during Appstats::LogCollector#find_remote_files")
         Appstats.log(:error,e.message)
         0
       end
     end
     
     def self.load_remote_files(remote_login,path,all_files)
+      if all_files.empty?
+        Appstats.log(:info,"No remote logs to load.")
+        return 0
+      end
+
       count = 0
       Appstats.log(:info, "About to analyze #{all_files.size} file(s).")
       all_files.each do |log_name|
@@ -43,12 +48,18 @@ module Appstats
     end
     
     def self.download_remote_files(raw_logins)
+      all = LogCollector.where("status = 'unprocessed'").all
+      if all.empty?
+        Appstats.log(:info,"No remote logs to download.")
+        return 0
+      end
+
       normalized_logins = {}
       raw_logins.each do |login|
         normalized_logins[login[:host]] = login
       end
       count = 0
-      all = LogCollector.where("status = 'unprocessed'").all
+      
       Appstats.log(:info,"About to download #{all.size} file(s).")
       all.each do |log_collector|
         host = log_collector.host
@@ -59,7 +70,7 @@ module Appstats
             scp.download!( log_collector.filename, log_collector.local_filename )
           end
         rescue Exception => e
-          Appstats.log(:error,"Something bad occurred during Appstats::LogCollector.download_remote_files")
+          Appstats.log(:error,"Something bad occurred during Appstats::LogCollector#download_remote_files")
           Appstats.log(:error,e.message)
         end
         if File.exists?(log_collector.local_filename)
@@ -73,6 +84,38 @@ module Appstats
         log_collector.save
       end
       Appstats.log(:info,"Downloaded #{count} file(s).")
+      count
+    end
+    
+    def self.process_local_files
+      all = LogCollector.where("status = 'downloaded'").all
+      if all.empty?
+        Appstats.log(:info,"No local logs to process.")
+        return 0
+      end
+      Appstats.log(:info,"About to process #{all.size} file(s).")
+      count = 0
+      total_entries = 0
+      all.each do |log_collector|
+        current_entries = 0
+        begin
+          File.open(log_collector.local_filename,"r").readlines.each do |line|
+            entry = Entry.load_from_logger_entry(line.strip)
+            entry.log_collector = log_collector
+            entry.save
+            current_entries += 1
+            total_entries += 1
+          end
+          Appstats.log(:info,"  - #{current_entries} entr(ies) in #{log_collector.local_filename}.")
+          log_collector.status = "processed"
+          log_collector.save
+          count += 1
+        rescue Exception => e
+          Appstats.log(:error,"Something bad occurred during Appstats::LogCollector#process_local_files")
+          Appstats.log(:error,e.message)
+        end
+      end
+      Appstats.log(:info,"Processed #{count} file(s) with #{total_entries} entr(ies).")
       count
     end
   

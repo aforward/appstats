@@ -2,7 +2,7 @@
 module Appstats
   class Context < ActiveRecord::Base
     set_table_name "appstats_contexts"
-    belongs_to :entry
+    belongs_to :entry, :foreign_key => "appstats_entry_id"
     attr_accessible :context_key, :context_value
   
     def context_value=(value)

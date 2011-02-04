@@ -28,6 +28,7 @@ ActiveRecord::Schema.define(:version => 20110204183259) do
     t.text     "raw_entry"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "appstats_log_collector_id"
   end
 
   create_table "appstats_log_collectors", :force => true do |t|
