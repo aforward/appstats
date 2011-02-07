@@ -3,6 +3,6 @@ pkg/*
 .bundle
 db/migrate
 doc
-config
 config/appstats.yml
+config/initializers/appstats.rb
 log
