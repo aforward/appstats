@@ -188,18 +188,18 @@ module Appstats
       end
       
       it "should understand an entry without contexts" do
-        entry = Entry.load_from_logger_entry("0.1.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
+        entry = Entry.load_from_logger_entry("0.2.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_search"
-        entry.raw_entry.should == "0.1.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
+        entry.raw_entry.should == "0.2.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
       end
       
       it "should understand contexts" do
-        entry = Entry.load_from_logger_entry("0.1.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
+        entry = Entry.load_from_logger_entry("0.2.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_filter"
-        entry.raw_entry.should == "0.1.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
+        entry.raw_entry.should == "0.2.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
         entry.contexts.size.should == 2
         entry.contexts[0].context_key = "app_name"
@@ -210,25 +210,25 @@ module Appstats
       
     end
        
-    # describe "#log_collector" do
-    #   
-    #   before(:each) do
-    #     @log_collector = Appstats::LogCollector.new(:host => "a")
-    #     @log_collector.save.should == true
-    #   end
-    #   
-    #   it "should have a log_collector" do
-    #     @entry.log_collector.should == nil
-    #     @entry.log_collector = @log_collector
-    #     @entry.save.should == true
-    #     @entry.reload
-    #     @entry.log_collector.should == @log_collector
-    #     
-    #     @entry = Entry.last
-    #     @entry.log_collector.should == @log_collector
-    #   end
-    #   
-    # end    
+    describe "#log_collector" do
+      
+      before(:each) do
+        @log_collector = Appstats::LogCollector.new(:host => "a")
+        @log_collector.save.should == true
+      end
+      
+      it "should have a log_collector" do
+        @entry.log_collector.should == nil
+        @entry.log_collector = @log_collector
+        @entry.save.should == true
+        @entry.reload
+        @entry.log_collector.should == @log_collector
+        
+        @entry = Entry.last
+        @entry.log_collector.should == @log_collector
+      end
+      
+    end    
 
   end
 end
