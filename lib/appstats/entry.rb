@@ -7,6 +7,27 @@ module Appstats
     belongs_to :log_collector, :foreign_key => "appstats_log_collector_id"
     
     attr_accessible :action, :occurred_at, :raw_entry
+
+    before_destroy :remove_dependencies
+  
+    def occurred_at=(value)
+      self[:occurred_at] = value
+      if value.nil?
+        self[:year] = nil
+        self[:month] = nil
+        self[:day] = nil
+        self[:hour] = nil
+        self[:minute] = nil
+        self[:second] = nil
+      else
+        self[:year] = value.year
+        self[:month] = value.month
+        self[:day] = value.day
+        self[:hour] = value.hour
+        self[:minute] = value.min
+        self[:second] = value.sec
+      end
+    end
   
     def to_s
       return "No Entry" if action.nil? || action == ''
@@ -37,6 +58,15 @@ module Appstats
       entry.save
       entry
     end
+  
+    
+    private
+    
+      def remove_dependencies
+        contexts.each do |context|
+          context.destroy
+        end
+      end
   
   end
 end

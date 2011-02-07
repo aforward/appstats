@@ -4,9 +4,16 @@ module Appstats
   describe Entry do
 
     before(:each) do
+      @before_count = Entry.count
+      Appstats::Logger.reset
       @time = Time.parse('2010-01-02 10:20:30')
-      @entry = Appstats::Entry.new
       Time.stub!(:now).and_return(@time)
+
+      @entry = Appstats::Entry.new
+    end
+    
+    after(:each) do
+      File.delete(Appstats::Logger.filename) if File.exists?(Appstats::Logger.filename)
     end
 
     describe "#initialize" do
@@ -32,6 +39,60 @@ module Appstats
     
     end
     
+    describe "#destroy" do
+      
+      it "should remove itself" do
+        e = Entry.create
+        id = e.id
+        e.destroy
+        Entry.exists?(id).should == false
+      end
+      
+      it "should remove all contexts" do
+        e = Entry.create
+        c = Context.new and c.entry = e and c.save.should == true
+        
+        id1 = e.id
+        id2 = c.id
+        
+        e.destroy
+        
+        Entry.exists?(id1).should == false
+        Context.exists?(id2).should == false
+      end
+    end
+    
+    describe "#occurred_at" do
+      
+      it "should update the individual parts" do
+        entry = Appstats::Entry.new(:action => 'a', :occurred_at => Time.parse("2010-01-15 10:11:12"), :raw_entry => 'b')
+        entry.year.should == 2010
+        entry.month.should == 01
+        entry.day.should == 15
+        entry.hour.should == 10
+        entry.minute.should == 11
+        entry.second.should == 12
+        
+        entry.occurred_at = Time.parse("2011-02-16 17:18:19")
+        entry.year.should == 2011
+        entry.month.should == 02
+        entry.day.should == 16
+        entry.hour.should == 17
+        entry.minute.should == 18
+        entry.second.should == 19
+        
+        entry.occurred_at = nil
+        entry.year.should == nil
+        entry.month.should == nil
+        entry.day.should == nil
+        entry.hour.should == nil
+        entry.minute.should == nil
+        entry.second.should == nil
+        
+      end
+      
+    end
+    
     describe "#contexts" do
       
       it "should have none by default" do
@@ -41,16 +102,18 @@ module Appstats
       it "should be able add contexts" do
         context = Appstats::Context.new(:context_key => 'a', :context_value => 'one')
         context.save.should == true
+        @entry.save.should == true
         @entry.contexts<< context
         @entry.save.should == true
         @entry.reload
         @entry.contexts.size.should == 1
         @entry.contexts[0].should == context
       end
-      
+    
       it "should alphabetize them" do
         zzz = Appstats::Context.create(:context_key => 'zzz', :context_value => 'one')
         aaa = Appstats::Context.create(:context_key => 'aaa', :context_value => 'one')
+        @entry.save.should == true
         @entry.contexts<< zzz
         @entry.contexts<< aaa
         @entry.save.should == true
@@ -61,10 +124,6 @@ module Appstats
     end
 
     describe "#to_s" do
-    
-      before(:each) do
-        @entry = Appstats::Entry.new
-      end
     
       it "should return no entry if no action" do
         @entry.to_s.should == 'No Entry'
@@ -87,16 +146,6 @@ module Appstats
     
     describe "#load_from_logger_file" do
       
-      before(:each) do
-        @before_count = Entry.count
-        Appstats::Logger.reset
-        Time.stub!(:now).and_return(Time.parse('2010-09-21 23:15:20'))
-      end
-
-      after(:each) do
-        File.delete(Appstats::Logger.filename) if File.exists?(Appstats::Logger.filename)
-      end
-
       it "should handle nil" do
         Entry.load_from_logger_file(nil).should == false
         Entry.count.should == @before_count
@@ -112,24 +161,20 @@ module Appstats
       it "should handle appstat files" do
         Appstats::Logger.entry("test_action")
         Appstats::Logger.entry("another_test_action")
+        @before_count = Entry.count
         Entry.load_from_logger_file(Appstats::Logger.filename).should == true
         Entry.count.should == @before_count + 2
         Entry.last.action.should == "another_test_action"
       end
-      
+
     end
     
-    
     describe "#load_from_logger_entry" do
-      
-      before(:each) do
-        @before_count = Entry.count
-      end
       
       it "should handle nil" do
         Entry.load_from_logger_entry(nil).should == false
         Entry.count.should == @before_count
-
+    
         Entry.load_from_logger_entry("").should == false
         Entry.count.should == @before_count
       end
@@ -143,18 +188,18 @@ module Appstats
       end
       
       it "should understand an entry without contexts" do
-        entry = Entry.load_from_logger_entry("0.0.16 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
+        entry = Entry.load_from_logger_entry("0.1.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_search"
-        entry.raw_entry.should == "0.0.16 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
+        entry.raw_entry.should == "0.1.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
       end
       
       it "should understand contexts" do
-        entry = Entry.load_from_logger_entry("0.0.16 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
+        entry = Entry.load_from_logger_entry("0.1.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_filter"
-        entry.raw_entry.should == "0.0.16 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
+        entry.raw_entry.should == "0.1.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
         entry.contexts.size.should == 2
         entry.contexts[0].context_key = "app_name"
@@ -164,26 +209,26 @@ module Appstats
       end
       
     end
-   
-    describe "#log_collector" do
-      
-      before(:each) do
-        @log_collector = Appstats::LogCollector.new(:host => "a")
-        @log_collector.save.should == true
-      end
-      
-      it "should have a log_collector" do
-        @entry.log_collector.should == nil
-        @entry.log_collector = @log_collector
-        @entry.save.should == true
-        @entry.reload
-        @entry.log_collector.should == @log_collector
-        
-        @entry = Entry.last
-        @entry.log_collector.should == @log_collector
-      end
-      
-    end    
+       
+    # describe "#log_collector" do
+    #   
+    #   before(:each) do
+    #     @log_collector = Appstats::LogCollector.new(:host => "a")
+    #     @log_collector.save.should == true
+    #   end
+    #   
+    #   it "should have a log_collector" do
+    #     @entry.log_collector.should == nil
+    #     @entry.log_collector = @log_collector
+    #     @entry.save.should == true
+    #     @entry.reload
+    #     @entry.log_collector.should == @log_collector
+    #     
+    #     @entry = Entry.last
+    #     @entry.log_collector.should == @log_collector
+    #   end
+    #   
+    # end    
 
   end
 end
