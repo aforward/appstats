@@ -9,6 +9,8 @@ gem 'activerecord', '>=3.0.0.beta4'
 require 'active_support'
 require 'active_record'
 
+require File.dirname(__FILE__) + "/../appstats.rb"
+
 # For some reason, ActiveSupport 3.0.0 doesn't load.
 # Load needed extension directly for now.
 require "active_support/core_ext/object"

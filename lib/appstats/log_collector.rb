@@ -15,7 +15,7 @@ module Appstats
       begin
         Appstats.log(:info,"Looking for logs in [#{remote_login[:user]}@#{remote_login[:host]}:#{path}] labelled [#{log_template}]")
         Net::SSH.start(remote_login[:host], remote_login[:user], :password => remote_login[:password] ) do |ssh|
-         all_files = ssh.exec!("cd #{path} && ls | grep #{log_template}").split
+         all_files = ssh.exec!("cd #{path} && ls -tr | grep #{log_template}").split
          load_remote_files(remote_login,path,all_files)
         end
       rescue Exception => e
@@ -35,7 +35,9 @@ module Appstats
       Appstats.log(:info, "About to analyze #{all_files.size} file(s).")
       all_files.each do |log_name|
         filename = File.join(path,log_name)
-        if LogCollector.find_by_host_and_filename(remote_login[:host],filename).nil?
+        if !log_name.match("(.*)#{Time.now.strftime('%Y-%m-%d')}.log").nil?
+          Appstats.log(:info, "  - IGNORING CURRENT LOG FILE #{remote_login[:user]}@#{remote_login[:host]}:#{filename}")
+        elsif LogCollector.find_by_host_and_filename(remote_login[:host],filename).nil?
           log_collector = LogCollector.create(:host => remote_login[:host], :filename => filename, :status => "unprocessed")
           Appstats.log(:info, "  - #{remote_login[:user]}@#{remote_login[:host]}:#{filename}")
           count += 1

@@ -4,6 +4,9 @@ module Appstats
   describe LogCollector do
 
     before(:each) do
+      @time = Time.parse('2010-01-03 10:20:30')
+      Time.stub!(:now).and_return(@time)
+
       LogCollector.delete_all
       @log_collector = Appstats::LogCollector.new
       @login = { :host => "myhost.localnet", :user => "deployer", :password => "pass" }
@@ -53,12 +56,13 @@ module Appstats
       it "should log all transactions" do
         ssh = mock(Net::SSH)
         Net::SSH.should_receive(:start).with("myhost.localnet","deployer",{ :password => "pass"}).and_yield(ssh)
-        ssh.should_receive(:exec!).with("cd /my/path/log && ls | grep mystats").and_return("mystats1\nmystats2")
-        
+        ssh.should_receive(:exec!).with("cd /my/path/log && ls -tr | grep mystats").and_return("mystats_2010-01-01.log\nmystats_2010-01-02.log\nmystats_2010-01-03.log")
+
         Appstats.should_receive(:log).with(:info, "Looking for logs in [deployer@myhost.localnet:/my/path/log] labelled [mystats]")
-        Appstats.should_receive(:log).with(:info, "About to analyze 2 file(s).")
-        Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/mystats1")
-        Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/mystats2")
+        Appstats.should_receive(:log).with(:info, "About to analyze 3 file(s).")
+        Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/mystats_2010-01-01.log")
+        Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/mystats_2010-01-02.log")
+        Appstats.should_receive(:log).with(:info, "  - IGNORING CURRENT LOG FILE deployer@myhost.localnet:/my/path/log/mystats_2010-01-03.log")
         Appstats.should_receive(:log).with(:info, "Loaded 2 file(s).")
         LogCollector.find_remote_files(@login,"/my/path/log","mystats").should == 2
       end
@@ -66,14 +70,14 @@ module Appstats
       it "should talk to remote server" do
         ssh = mock(Net::SSH)
         Net::SSH.should_receive(:start).with("myhost.localnet","deployer",{ :password => "pass"}).and_yield(ssh)
-        ssh.should_receive(:exec!).with("cd /my/path/log && ls | grep mystats").and_return("mystats1\nmystats2")
+        ssh.should_receive(:exec!).with("cd /my/path/log && ls -tr | grep mystats").and_return("mystats_2010-01-01.log\nmystats_2010-01-02.log")
         
         LogCollector.find_remote_files(@login,"/my/path/log","mystats").should == 2
         LogCollector.count.should == @before_count + 2
 
         log_collector = LogCollector.last
         log_collector.host.should == "myhost.localnet"
-        log_collector.filename.should == "/my/path/log/mystats2"
+        log_collector.filename.should == "/my/path/log/mystats_2010-01-02.log"
         log_collector.status.should == "unprocessed"
       end
       
@@ -98,7 +102,6 @@ module Appstats
         Appstats.should_receive(:log).with(:info,"No remote logs to load.")
         LogCollector.load_remote_files(@login,"/my/path/log",[]).should == 0
       end
-
       
       it "should log the files loaded" do
         LogCollector.load_remote_files(@login,"/my/path/log",["app2"]).should == 1
@@ -109,6 +112,15 @@ module Appstats
         Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/app3")
         Appstats.should_receive(:log).with(:info, "Loaded 2 file(s).")
         LogCollector.load_remote_files(@login,"/my/path/log",["app1","app2","app3"]).should == 2
+      end
+
+      it "should ignore today's file" do
+        Appstats.should_receive(:log).with(:info, "About to analyze 3 file(s).")
+        Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/app1")
+        Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/app2")
+        Appstats.should_receive(:log).with(:info, "  - IGNORING CURRENT LOG FILE deployer@myhost.localnet:/my/path/log/app3_2010-01-03.log")
+        Appstats.should_receive(:log).with(:info, "Loaded 2 file(s).")
+        LogCollector.load_remote_files(@login,"/my/path/log",["app1","app2","app3_2010-01-03.log"]).should == 2
       end
       
       it "should create an unprocessed record per file" do

@@ -23,7 +23,6 @@ module Appstats
       @env = 'DB'
       @default_env = 'development'
       @verbose = true
-      @log_level = Logger::ERROR
       yield self if block_given?
       # Add to load_path every "lib/" directory in vendor
       Dir["#{vendor}/**/lib"].each{|p| $LOAD_PATH << p }
