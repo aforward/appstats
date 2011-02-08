@@ -20,6 +20,28 @@ module Appstats
       
     end
     
+    describe "#run" do
+      
+      before(:each) do
+        Appstats::Entry.delete_all
+      end
+      
+      it "should return 0 if no results" do
+        query = Appstats::Query.new(:input => "# blahs")
+        query.run.should == 0
+      end
+
+      it "should track the count if available" do
+        Appstats::Entry.create(:action => "myblahs")
+        query = Appstats::Query.new(:input => "# myblahs")
+        query.run.should == 1
+        Appstats::Entry.create(:action => "myblahs")
+        query.run.should == 2
+      end
+      
+    end
+    
+    
     describe "#to_sql" do
       
       before(:all) do
@@ -70,10 +92,7 @@ module Appstats
           expected_sql = "select count(*) from appstats_entries where action = 'login' and (occurred_at >= '2010-01-15 00:00:00' and occurred_at <= '2010-01-31 23:59:59') and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = 'your.localnet')"
           Appstats::Query.new(:input => "# logins between 2010-01-15 and 2010-01-31 on server your.localnet").to_sql.should == expected_sql
         end
-        
       end
-
-      
     end
     
     describe "#host_filter_to_sql" do

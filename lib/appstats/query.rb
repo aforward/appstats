@@ -9,6 +9,10 @@ module Appstats
       @input = data[:input]
     end
     
+    def run
+      ActiveRecord::Base.connection.select_one(to_sql)["count(*)"].to_i
+    end
+    
     def to_sql
       sql = "select count(*) from appstats_entries"
       return sql if @input.nil?
