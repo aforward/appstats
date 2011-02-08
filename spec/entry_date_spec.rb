@@ -85,7 +85,7 @@ module Appstats
         EntryDate.parse("February, 2010").should == EntryDate.new(:year => 2010, :month => 2)
         EntryDate.parse("Mar, 2011").should == EntryDate.new(:year => 2011, :month => 3)
       end
-
+      
       it "should understand YYYY-mm-dd" do
         EntryDate.parse("2010-04-25").should == EntryDate.new(:year => 2010, :month => 4, :day => 25)
         EntryDate.parse("2011-05-15").should == EntryDate.new(:year => 2011, :month => 5, :day => 15)

@@ -49,6 +49,14 @@ module Appstats
         return range
       end
 
+      m = input.match(/^since\s*(.*)$/)
+      unless m.nil?
+        range.from = EntryDate.parse(m[1])
+        range.format = "inclusive"
+        return range
+      end
+
+
       m = input.match(/^this\s*(year|month|week|day)$/)
       unless m.nil?
         range.from = EntryDate.parse(input)

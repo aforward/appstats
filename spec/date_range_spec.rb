@@ -51,6 +51,11 @@ module Appstats
         range.should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 3), :to => nil, :format => "fixed_point" )
       end
 
+      it "shouldunderstand since" do
+        DateRange.parse("  since Mar, 2010  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 3), :to => nil, :format => "inclusive" )
+        DateRange.parse("  since 2010-04-15  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 4, :day => 15), :to => nil, :format => "inclusive" )
+      end
+
       it "should understand on" do
         range = DateRange.parse("  on Mar, 2010  ")
         range.should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 3), :to => nil, :format => "fixed_point" )
