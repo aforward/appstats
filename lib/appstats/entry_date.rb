@@ -22,9 +22,16 @@ module Appstats
       week  
     end
 
-    def to_time
+    def to_time(mode = :start)
       return Time.now if @year.nil?
-      Time.parse("#{@year}-#{@month||'01'}-#{@day||'01'} #{@hour||'00'}:#{@min||'00'}:#{@sec||'00'}")
+      t = Time.parse("#{@year}-#{@month||'01'}-#{@day||'01'} #{@hour||'00'}:#{@min||'00'}:#{@sec||'00'}")
+      
+      if mode == :end
+        t = t.end_of_year if @month.nil?
+        t = t.end_of_month if @day.nil?
+        t = t.end_of_day if @hour.nil?
+      end
+      t
     end
 
     def to_s

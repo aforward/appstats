@@ -12,11 +12,15 @@ module Appstats
     def to_sql
       sql = "select count(*) from appstats_entries"
       return sql if @input.nil?
-      m = @input.match(/^\s*(\#)\s*([^\s]*)\s*$/)
+      m = @input.match(/^\s*(\#)\s*([^\s]*)\s*(.*)/)
       return sql if m.nil?
       if m[1] == "#"
         sql += " where action = '#{normalize_action_name(m[2])}'"
       end
+      m = m[3].match(/^since\s*(.*)$/)
+      return sql if m.nil?
+      range = DateRange.parse(m[1])
+
       sql
     end
     

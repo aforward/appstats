@@ -54,7 +54,6 @@ module Appstats
       #   it "should understand inclusive" do
       #     expected_sql = "select count(*) from appstats_entries where action = 'login' and occurred_at >= '2010-01-15'"
       #     Appstats::Query.new(:input => "# logins since 2010-01-15").to_sql.should == expected_sql
-      #     
       #   end
       #   
       #   

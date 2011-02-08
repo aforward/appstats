@@ -70,24 +70,24 @@ module Appstats
         entry.month.should == 01
         entry.day.should == 15
         entry.hour.should == 10
-        entry.minute.should == 11
-        entry.second.should == 12
+        entry.min.should == 11
+        entry.sec.should == 12
         
         entry.occurred_at = Time.parse("2011-02-16 17:18:19")
         entry.year.should == 2011
         entry.month.should == 02
         entry.day.should == 16
         entry.hour.should == 17
-        entry.minute.should == 18
-        entry.second.should == 19
+        entry.min.should == 18
+        entry.sec.should == 19
         
         entry.occurred_at = nil
         entry.year.should == nil
         entry.month.should == nil
         entry.day.should == nil
         entry.hour.should == nil
-        entry.minute.should == nil
-        entry.second.should == nil
+        entry.min.should == nil
+        entry.sec.should == nil
         
       end
       

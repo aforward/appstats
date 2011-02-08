@@ -17,15 +17,15 @@ module Appstats
         self[:month] = nil
         self[:day] = nil
         self[:hour] = nil
-        self[:minute] = nil
-        self[:second] = nil
+        self[:min] = nil
+        self[:sec] = nil
       else
         self[:year] = value.year
         self[:month] = value.month
         self[:day] = value.day
         self[:hour] = value.hour
-        self[:minute] = value.min
-        self[:second] = value.sec
+        self[:min] = value.min
+        self[:sec] = value.sec
       end
     end
   

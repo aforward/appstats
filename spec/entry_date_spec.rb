@@ -46,6 +46,12 @@ module Appstats
       it "should handle now" do
         EntryDate.new.to_time.should == Time.now
       end
+      
+      it "should handle end_of" do
+        EntryDate.new(:year => 2009).to_time(:end).to_s.should == Time.parse("2009-12-31 23:59:59").to_s
+        EntryDate.new(:year => 2009, :month => 2).to_time(:end).to_s.should == Time.parse("2009-02-28 23:59:59").to_s
+        EntryDate.new(:year => 2009, :month => 2, :day => 15).to_time(:end).to_s.should == Time.parse("2009-02-15 23:59:59").to_s
+      end
 
       
     end

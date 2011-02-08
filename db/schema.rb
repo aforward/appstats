@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110207213514) do
+ActiveRecord::Schema.define(:version => 20110208210921) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
@@ -45,12 +45,12 @@ ActiveRecord::Schema.define(:version => 20110207213514) do
     t.integer  "month"
     t.integer  "day"
     t.integer  "hour"
-    t.integer  "minute"
-    t.integer  "second"
+    t.integer  "min"
+    t.integer  "sec"
   end
 
   add_index "appstats_entries", ["action"], :name => "index_appstats_entries_on_action"
-  add_index "appstats_entries", ["year", "month", "day", "hour", "minute"], :name => "index_entries_by_minute"
+  add_index "appstats_entries", ["year", "month", "day", "hour", "min"], :name => "index_entries_by_minute"
   add_index "appstats_entries", ["year", "month", "day", "hour"], :name => "index_entries_by_hour"
   add_index "appstats_entries", ["year", "month", "day"], :name => "index_entries_by_day"
   add_index "appstats_entries", ["year", "month"], :name => "index_entries_by_month"
