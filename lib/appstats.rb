@@ -3,6 +3,7 @@ require 'active_record'
 require "#{File.dirname(__FILE__)}/appstats/code_injections"
 require "#{File.dirname(__FILE__)}/appstats/entry"
 require "#{File.dirname(__FILE__)}/appstats/entry_date"
+require "#{File.dirname(__FILE__)}/appstats/date_range"
 require "#{File.dirname(__FILE__)}/appstats/action"
 require "#{File.dirname(__FILE__)}/appstats/context"
 require "#{File.dirname(__FILE__)}/appstats/tasks"

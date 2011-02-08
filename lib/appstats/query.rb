@@ -3,10 +3,24 @@ module Appstats
   class Query
 
     @@default = "1=1"
-    
-    def self.parse_to_sql(raw_input)
-      
+    attr_accessor :input
+
+    def initialize(data = {})
+      @input = data[:input]
     end
+    
+    def to_sql
+      sql = "select count(*) from appstats_entries"
+      return sql if @input.nil?
+      m = @input.match(/^\s*(\#)\s*([^\s]*)\s*$/)
+      return sql if m.nil?
+      if m[1] == "#"
+        sql += " where action = '#{normalize_action_name(m[2])}'"
+      end
+      sql
+    end
+    
+    
     
     def self.host_filter_to_sql(raw_input)
       return @@default if raw_input.nil?
@@ -27,6 +41,14 @@ module Appstats
       return @@default if key == '' or key.nil?
       "EXISTS (select * from appstats_contexts where appstats_entries.id = appstats_contexts.appstats_entry_id and context_key='#{key}' and context_value='#{value}' )"
     end
+    
+    private
+    
+      def normalize_action_name(action_name)
+        action = Appstats::Action.where("plural_name = ?",action_name).first
+        action.nil? ? action_name : action.name 
+      end
+    
     
   end
 end
