@@ -12,6 +12,20 @@ module Appstats
       @min = data[:min]
       @sec = data[:sec]
     end
+    
+    def end_of_week
+      week = self.dup
+      t = to_time.end_of_week
+      week.year = t.year
+      week.month = t.month
+      week.day = t.day
+      week  
+    end
+
+    def to_time
+      return Time.now if @year.nil?
+      Time.parse("#{@year}-#{@month||'01'}-#{@day||'01'} #{@hour||'00'}:#{@min||'00'}:#{@sec||'00'}")
+    end
 
     def to_s
       s = ""
@@ -73,31 +87,27 @@ module Appstats
         t_parts = [:year,:month,:day]
       end
 
-      m = input.match(/^last\s*(\d*)\s*years?$/)
+      m = input.match(/^(last|previous)\s*(\d*)\s*years?$/)
       if m
-        amount = m[1] == "" ? 1 : m[1].to_i
-        t -= amount.year
+        t -= last_date_offset(m).year
         t_parts = [:year]
       end
       
-      m = input.match(/^last\s*(\d*)\s*months?$/)
+      m = input.match(/^(last|previous)\s*(\d*)\s*months?$/)
       if m
-        amount = m[1] == "" ? 1 : m[1].to_i
-        t -= amount.month
+        t -= last_date_offset(m).month
         t_parts = [:year,:month]
       end
 
-      m = input.match(/^last\s*(\d*)\s*weeks?$/)
+      m = input.match(/^(last|previous)\s*(\d*)\s*weeks?$/)
       if m
-        amount = m[1] == "" ? 1 : m[1].to_i
-        t = (t - amount.week).beginning_of_week
+        t = (t - last_date_offset(m).week).beginning_of_week
         t_parts = [:year,:month,:day]
       end
 
-      m = input.match(/^last\s*(\d*)\s*days?$/)
+      m = input.match(/^(last|previous)\s*(\d*)\s*days?$/)
       if m
-        amount = m[1] == "" ? 1 : m[1].to_i
-        t -= amount.day
+        t -= last_date_offset(m).day
         t_parts = [:year,:month,:day]
       end
 
@@ -126,6 +136,13 @@ module Appstats
 
       def state
         [@year, @month, @day, @hour, @min, @sec]
+      end
+      
+      # (last|previous) (\d*)
+      def self.last_date_offset(match)
+        offset = match[1] == "last" ? -1 : 0
+        amount = match[2] == "" ? 1 : match[2].to_i + offset
+        amount
       end
   
   end
