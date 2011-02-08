@@ -12,19 +12,28 @@ module Appstats
     def to_sql
       sql = "select count(*) from appstats_entries"
       return sql if @input.nil?
-      m = @input.match(/^\s*(\#)\s*([^\s]*)\s*(.*)/)
+      current_input = @input
+      
+      m = current_input.match(/^\s*(\#)\s*([^\s]*)\s*(.*)/)
       return sql if m.nil?
       if m[1] == "#"
         sql += " where action = '#{normalize_action_name(m[2])}'"
       end
-      m = m[3].match(/^since\s*(.*)$/)
-      return sql if m.nil?
-      range = DateRange.parse(m[1])
+      current_input = m[3]
+      
+      m_on_server = current_input.match(/^(.*)?\s*on\s*server\s*(.*)$/)
+      date_range = m_on_server.nil? ? current_input : m_on_server[1]
+      if date_range.size > 0
+        range = DateRange.parse(date_range)
+        sql += " and #{range.to_sql}" unless range.to_sql == "1=1"
+      end
+      return sql if m_on_server.nil?
+      
+      host_name = m_on_server[2]
+      sql += " and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = '#{host_name}')"
 
       sql
     end
-    
-    
     
     def self.host_filter_to_sql(raw_input)
       return @@default if raw_input.nil?

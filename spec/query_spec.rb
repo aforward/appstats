@@ -49,15 +49,30 @@ module Appstats
         
       end
       
-      # describe "date ranges" do
-      #   
-      #   it "should understand inclusive" do
-      #     expected_sql = "select count(*) from appstats_entries where action = 'login' and occurred_at >= '2010-01-15'"
-      #     Appstats::Query.new(:input => "# logins since 2010-01-15").to_sql.should == expected_sql
-      #   end
-      #   
-      #   
-      # end
+      describe "date ranges" do
+        it "should understand since dates" do
+          expected_sql = "select count(*) from appstats_entries where action = 'login' and occurred_at >= '2010-01-15 00:00:00'"
+          Appstats::Query.new(:input => "# logins since 2010-01-15").to_sql.should == expected_sql
+        end
+      end
+
+      describe "server_name" do
+        
+        it "should on server_name" do
+          expected_sql = "select count(*) from appstats_entries where action = 'login' and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = 'my.localnet')"
+          Appstats::Query.new(:input => "# logins on server my.localnet").to_sql.should == expected_sql
+        end
+
+      end
+      
+      describe "date range and server_name" do
+        it "should understand  dates and 'on server'" do
+          expected_sql = "select count(*) from appstats_entries where action = 'login' and (occurred_at >= '2010-01-15 00:00:00' and occurred_at <= '2010-01-31 23:59:59') and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = 'your.localnet')"
+          Appstats::Query.new(:input => "# logins between 2010-01-15 and 2010-01-31 on server your.localnet").to_sql.should == expected_sql
+        end
+        
+      end
+
       
     end
     
