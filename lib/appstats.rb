@@ -12,7 +12,9 @@ require "#{File.dirname(__FILE__)}/appstats/log_collector"
 require "#{File.dirname(__FILE__)}/appstats/query"
 
 # required in the appstats.gemspec
-# require "#{File.dirname(__FILE__)}/appstats/version"
+unless Appstats.const_defined?(:VERSION)
+  require "#{File.dirname(__FILE__)}/appstats/version"
+end
 
 module Appstats
 
