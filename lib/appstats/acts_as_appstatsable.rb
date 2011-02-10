@@ -22,10 +22,10 @@ module ActsAsAppstatsable
     end
     
     def acts_as_appstatsable_options(options = {})
-      if !options[:include].nil?
-        self.appstats_after_create = options[:include].include?(:create)
-        self.appstats_after_destroy = options[:include].include?(:destroy)
-        self.appstats_after_update = options[:include].include?(:update)
+      if !options[:only].nil?
+        self.appstats_after_create = options[:only].include?(:create)
+        self.appstats_after_destroy = options[:only].include?(:destroy)
+        self.appstats_after_update = options[:only].include?(:update)
       elsif !options[:except].nil?
         self.appstats_after_create = !options[:except].include?(:create)
         self.appstats_after_destroy = !options[:except].include?(:destroy)

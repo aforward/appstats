@@ -15,7 +15,7 @@ describe ActsAsAppstatsable do
   describe "should be settable in the options" do
 
     it "should only track included options" do
-      Appstats::TestObject.acts_as_appstatsable_options(:include => [:create,:destroy])
+      Appstats::TestObject.acts_as_appstatsable_options(:only => [:create,:destroy])
       @obj = Appstats::TestObject.create(:name => "x")
       @obj.name = "y"
       @obj.save
@@ -44,14 +44,14 @@ describe ActsAsAppstatsable do
     end
 
     it "should track after_destroy" do
-      Appstats::TestObject.acts_as_appstatsable(:include => [:destroy])
+      Appstats::TestObject.acts_as_appstatsable(:only => [:destroy])
       @obj = Appstats::TestObject.create(:name => "x")
       @obj.destroy
       Appstats::Logger.raw_read.last.should == Appstats::Logger.entry_to_s("object-destroyed", :class_name => "Appstats::TestObject", :class_id => @obj.id, :details => "[x]")
     end
 
     it "should track after_update" do
-      Appstats::TestObject.acts_as_appstatsable(:include => [:update])
+      Appstats::TestObject.acts_as_appstatsable(:only => [:update])
       @obj = Appstats::TestObject.create(:name => "x")
       @obj.name = "y"
       @obj.save
