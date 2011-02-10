@@ -65,6 +65,10 @@ module Appstats
       raw_write(entry_to_s(action,contexts))
     end
     
+    def self.exception_entry(error,contexts = {})
+      raw_write(entry_to_s("appstats-exception",contexts.merge({:error => error.message})))
+    end
+    
     def self.today
       "#{Time.now.strftime('%Y-%m-%d')}"
     end

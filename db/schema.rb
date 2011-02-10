@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110208210921) do
+ActiveRecord::Schema.define(:version => 20110210185911) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
@@ -65,5 +65,11 @@ ActiveRecord::Schema.define(:version => 20110208210921) do
   end
 
   add_index "appstats_log_collectors", ["host"], :name => "index_appstats_log_collectors_on_host"
+
+  create_table "appstats_test_objects", :force => true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
 end
