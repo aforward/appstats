@@ -112,6 +112,11 @@ module Appstats
         Appstats::Logger.entry("address_search")
         Appstats::Logger.raw_read.should == ["entry_to_s called"]
       end
+      
+      it "should accept numbers" do
+        Appstats::Logger.entry(5, :blah => 6)   
+        Appstats::Logger.raw_read.should == ["0.4.0 setup[:,=,-n] 2010-09-21 23:15:20 action=5 : blah=6"]
+      end
 
     end
     
