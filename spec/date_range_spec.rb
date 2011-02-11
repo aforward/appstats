@@ -197,40 +197,75 @@ module Appstats
     end
    
    
-    describe "#from_to_s" do
+    describe "#from_date_to_s" do
       it "should handle nil" do
-        DateRange.new.from_to_s.should == nil
+        DateRange.new.from_date_to_s.should == nil
       end
 
       it "should be based on time" do
-        DateRange.new(:from => EntryDate.new(:year => 2010)).from_to_s.should == "2010-01-01 00:00:00"
+        DateRange.new(:from => EntryDate.new(:year => 2010)).from_date_to_s.should == "2010-01-01 00:00:00"
       end
       
       it "should be based on end_of time as-is for exclusive" do
-        DateRange.new(:from => EntryDate.new(:year => 2009), :format => :exclusive).from_to_s.should == "2009-12-31 23:59:59"
-        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 2), :format => :exclusive).from_to_s.should == "2009-02-28 23:59:59"
-        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 2, :day => 15), :format => :exclusive).from_to_s.should == "2009-02-15 23:59:59"
+        DateRange.new(:from => EntryDate.new(:year => 2009), :format => :exclusive).from_date_to_s.should == "2009-12-31 23:59:59"
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 2), :format => :exclusive).from_date_to_s.should == "2009-02-28 23:59:59"
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 2, :day => 15), :format => :exclusive).from_date_to_s.should == "2009-02-15 23:59:59"
       end
       
     end
 
-    describe "#to_to_s" do
+    describe "#to_date_to_s" do
       it "should handle nil" do
-        DateRange.new.to_to_s.should == nil
+        DateRange.new.to_date_to_s.should == nil
       end
 
       it "should be based on time as-is for exclusive" do
-        DateRange.new(:to => EntryDate.new(:year => 2009), :format => :exclusive).to_to_s.should == "2009-01-01 00:00:00"
+        DateRange.new(:to => EntryDate.new(:year => 2009), :format => :exclusive).to_date_to_s.should == "2009-01-01 00:00:00"
       end
 
       it "should be based on end_of time as-is for inclusive" do
-        DateRange.new(:to => EntryDate.new(:year => 2009), :format => :inclusive).to_to_s.should == "2009-12-31 23:59:59"
-        DateRange.new(:to => EntryDate.new(:year => 2009, :month => 2), :format => :inclusive).to_to_s.should == "2009-02-28 23:59:59"
-        DateRange.new(:to => EntryDate.new(:year => 2009, :month => 2, :day => 15), :format => :inclusive).to_to_s.should == "2009-02-15 23:59:59"
+        DateRange.new(:to => EntryDate.new(:year => 2009), :format => :inclusive).to_date_to_s.should == "2009-12-31 23:59:59"
+        DateRange.new(:to => EntryDate.new(:year => 2009, :month => 2), :format => :inclusive).to_date_to_s.should == "2009-02-28 23:59:59"
+        DateRange.new(:to => EntryDate.new(:year => 2009, :month => 2, :day => 15), :format => :inclusive).to_date_to_s.should == "2009-02-15 23:59:59"
       end
 
 
     end
+    
+    describe "#from_date" do
+      it "should handle nil" do
+        DateRange.new.from_date.should == nil
+      end
+
+      it "should be based on time" do
+        DateRange.new(:from => EntryDate.new(:year => 2010)).from_date.to_s.should == Time.parse("2010-01-01 00:00:00").to_s
+      end
+      
+      it "should be based on end_of time as-is for exclusive" do
+        DateRange.new(:from => EntryDate.new(:year => 2009), :format => :exclusive).from_date.to_s.should == Time.parse("2009-12-31 23:59:59").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 2), :format => :exclusive).from_date.to_s.should == Time.parse("2009-02-28 23:59:59").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 2, :day => 15), :format => :exclusive).from_date.to_s.should == Time.parse("2009-02-15 23:59:59").to_s
+      end
+      
+    end
+
+    describe "#to_date" do
+      it "should handle nil" do
+        DateRange.new.to_date.should == nil
+      end
+
+      it "should be based on time as-is for exclusive" do
+        DateRange.new(:to => EntryDate.new(:year => 2009), :format => :exclusive).to_date.to_s.should == Time.parse("2009-01-01 00:00:00").to_s
+      end
+
+      it "should be based on end_of time as-is for inclusive" do
+        DateRange.new(:to => EntryDate.new(:year => 2009), :format => :inclusive).to_date.to_s.should == Time.parse("2009-12-31 23:59:59").to_s
+        DateRange.new(:to => EntryDate.new(:year => 2009, :month => 2), :format => :inclusive).to_date.to_s.should == Time.parse("2009-02-28 23:59:59").to_s
+        DateRange.new(:to => EntryDate.new(:year => 2009, :month => 2, :day => 15), :format => :inclusive).to_date.to_s.should == Time.parse("2009-02-15 23:59:59").to_s
+      end
+
+
+    end    
     
     describe "#to_sql" do
     

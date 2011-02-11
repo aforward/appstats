@@ -188,18 +188,18 @@ module Appstats
       end
       
       it "should understand an entry without contexts" do
-        entry = Entry.load_from_logger_entry("0.6.1 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
+        entry = Entry.load_from_logger_entry("0.7.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_search"
-        entry.raw_entry.should == "0.6.1 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
+        entry.raw_entry.should == "0.7.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
       end
       
       it "should understand contexts" do
-        entry = Entry.load_from_logger_entry("0.6.1 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
+        entry = Entry.load_from_logger_entry("0.7.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_filter"
-        entry.raw_entry.should == "0.6.1 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
+        entry.raw_entry.should == "0.7.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
         entry.contexts.size.should == 2
         entry.contexts[0].context_key = "app_name"

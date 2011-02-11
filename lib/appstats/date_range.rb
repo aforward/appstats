@@ -10,16 +10,26 @@ module Appstats
       @format = data[:format] || :inclusive
     end
     
-    def from_to_s
+    def from_date
       return nil if @from.nil?
       mode = @format == :inclusive ? :start : :end
-      @from.to_time(mode).strftime('%Y-%m-%d %H:%M:%S')
+      @from.to_time(mode)
     end
-
-    def to_to_s
+    
+    def to_date
       return nil if @to.nil?
       mode = @format == :exclusive ? :start : :end
-      @to.to_time(mode).strftime('%Y-%m-%d %H:%M:%S')
+      @to.to_time(mode)
+    end
+    
+    def from_date_to_s
+      return nil if from_date.nil?
+      from_date.strftime('%Y-%m-%d %H:%M:%S')
+    end
+
+    def to_date_to_s
+      return nil if to_date.nil?
+      to_date.strftime('%Y-%m-%d %H:%M:%S')
     end
     
     def to_sql
@@ -28,9 +38,9 @@ module Appstats
       if !@from.nil? && @to.nil?
         return case @format
           when :inclusive then 
-            "occurred_at >= '#{from_to_s}'"
+            "occurred_at >= '#{from_date_to_s}'"
           when :exclusive then 
-            "occurred_at > '#{from_to_s}'"
+            "occurred_at > '#{from_date_to_s}'"
           when :fixed_point then 
             answer = "("
             [:year,:month,:day,:hour,:min,:sec].each do |t|
@@ -43,14 +53,14 @@ module Appstats
         end
       elsif @from.nil? && !@to.nil?
         return case @format
-          when :inclusive then "occurred_at <= '#{to_to_s}'"
-          when :exclusive then "occurred_at < '#{to_to_s}'"
+          when :inclusive then "occurred_at <= '#{to_date_to_s}'"
+          when :exclusive then "occurred_at < '#{to_date_to_s}'"
           else "1=1"
         end
       else
         return case @format
-          when :inclusive then "(occurred_at >= '#{from_to_s}' and occurred_at <= '#{to_to_s}')"
-          when :exclusive then "(occurred_at > '#{from_to_s}' and occurred_at < '#{to_to_s}')"
+          when :inclusive then "(occurred_at >= '#{from_date_to_s}' and occurred_at <= '#{to_date_to_s}')"
+          when :exclusive then "(occurred_at > '#{from_date_to_s}' and occurred_at < '#{to_date_to_s}')"
           else "1=1"
         end
       end

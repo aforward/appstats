@@ -10,14 +10,34 @@ module Appstats
       end
       
       it "should set input to nil" do
-        @query.input.should == nil
+        @query.query.should == nil
       end
       
-      it "should allow input on constructor" do
-        query = Appstats::Query.new(:input => "# logins")
-        query.input.should == "# logins"
+      it "should allow query on constructor" do
+        query = Appstats::Query.new(:query => "# logins")
+        query.query.should == "# logins"
       end
       
+    end
+
+    describe "#input" do
+    
+      it "should set the inputs to nil if input invalid" do
+        query = Appstats::Query.new(:query => "# myblahs today on server xyz.localnet")
+        query.query = nil
+        query.action.should == nil
+        query.host.should == nil
+        query.date_range.should == DateRange.new
+        
+      end
+    
+      it "should set the action and host" do
+        query = Appstats::Query.new(:query => "# myblahs today on server xyz.localnet")
+        query.action.should == "myblahs"
+        query.host.should == "xyz.localnet"
+        query.date_range.should == DateRange.parse("today")
+      end
+    
     end
     
     describe "#run" do
@@ -27,22 +47,24 @@ module Appstats
       end
       
       it "should return 0 if no results" do
-        query = Appstats::Query.new(:input => "# blahs")
-        query.run.should == 0
+        query = Appstats::Query.new(:query => "# blahs")
+        result = query.run
+        result.new_record?.should == false
+        result.should == Appstats::Result.new(:result_type => :on_demand, :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs")
       end
 
       it "should track the count if available" do
         Appstats::Entry.create(:action => "myblahs")
-        query = Appstats::Query.new(:input => "# myblahs")
-        query.run.should == 1
+        query = Appstats::Query.new(:query => "# myblahs")
+        query.run.count.should == 1
         Appstats::Entry.create(:action => "myblahs")
-        query.run.should == 2
+        query.run.count.should == 2
       end
-      
+
     end
     
     
-    describe "#to_sql" do
+    describe "#query_to_sql" do
       
       before(:all) do
         Appstats::Action.delete_all
@@ -51,22 +73,22 @@ module Appstats
       
       it "should return understand nil" do
         expected_sql = "select count(*) from appstats_entries"
-        Appstats::Query.new(:input => nil).to_sql.should == expected_sql
-        Appstats::Query.new(:input => "").to_sql.should == expected_sql
-        Appstats::Query.new.to_sql.should == expected_sql
+        Appstats::Query.new(:query => nil).query_to_sql.should == expected_sql
+        Appstats::Query.new(:query => "").query_to_sql.should == expected_sql
+        Appstats::Query.new.query_to_sql.should == expected_sql
       end
       
       describe "actions" do
         
         it "should understand both singular and plural names" do
           expected_sql = "select count(*) from appstats_entries where action = 'login'"
-          Appstats::Query.new(:input => "# logins").to_sql.should == expected_sql
-          Appstats::Query.new(:input => "# login").to_sql.should == expected_sql
+          Appstats::Query.new(:query => "# logins").query_to_sql.should == expected_sql
+          Appstats::Query.new(:query => "# login").query_to_sql.should == expected_sql
         end
         
         it "should use 'itself' if action not found" do
           expected_sql = "select count(*) from appstats_entries where action = 'garblygook'"
-          Appstats::Query.new(:input => "# garblygook").to_sql.should == expected_sql
+          Appstats::Query.new(:query => "# garblygook").query_to_sql.should == expected_sql
         end
         
       end
@@ -74,7 +96,7 @@ module Appstats
       describe "date ranges" do
         it "should understand since dates" do
           expected_sql = "select count(*) from appstats_entries where action = 'login' and occurred_at >= '2010-01-15 00:00:00'"
-          Appstats::Query.new(:input => "# logins since 2010-01-15").to_sql.should == expected_sql
+          Appstats::Query.new(:query => "# logins since 2010-01-15").query_to_sql.should == expected_sql
         end
       end
 
@@ -82,7 +104,7 @@ module Appstats
         
         it "should on server_name" do
           expected_sql = "select count(*) from appstats_entries where action = 'login' and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = 'my.localnet')"
-          Appstats::Query.new(:input => "# logins on server my.localnet").to_sql.should == expected_sql
+          Appstats::Query.new(:query => "# logins on server my.localnet").query_to_sql.should == expected_sql
         end
 
       end
@@ -90,7 +112,7 @@ module Appstats
       describe "date range and server_name" do
         it "should understand  dates and 'on server'" do
           expected_sql = "select count(*) from appstats_entries where action = 'login' and (occurred_at >= '2010-01-15 00:00:00' and occurred_at <= '2010-01-31 23:59:59') and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = 'your.localnet')"
-          Appstats::Query.new(:input => "# logins between 2010-01-15 and 2010-01-31 on server your.localnet").to_sql.should == expected_sql
+          Appstats::Query.new(:query => "# logins between 2010-01-15 and 2010-01-31 on server your.localnet").query_to_sql.should == expected_sql
         end
       end
     end

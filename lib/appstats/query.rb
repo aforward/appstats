@@ -3,40 +3,22 @@ module Appstats
   class Query
 
     @@default = "1=1"
-    attr_accessor :input
+    attr_accessor :query, :action, :host, :date_range, :query_to_sql
 
     def initialize(data = {})
-      @input = data[:input]
+      self.query=(data[:query])
+    end
+    
+    def query=(value)
+      @query = value
+      parse_query
     end
     
     def run
-      ActiveRecord::Base.connection.select_one(to_sql)["count(*)"].to_i
-    end
-    
-    def to_sql
-      sql = "select count(*) from appstats_entries"
-      return sql if @input.nil?
-      current_input = @input
-      
-      m = current_input.match(/^\s*(\#)\s*([^\s]*)\s*(.*)/)
-      return sql if m.nil?
-      if m[1] == "#"
-        sql += " where action = '#{normalize_action_name(m[2])}'"
-      end
-      current_input = m[3]
-      
-      m_on_server = current_input.match(/^(.*)?\s*on\s*server\s*(.*)$/)
-      date_range = m_on_server.nil? ? current_input : m_on_server[1]
-      if date_range.size > 0
-        range = DateRange.parse(date_range)
-        sql += " and #{range.to_sql}" unless range.to_sql == "1=1"
-      end
-      return sql if m_on_server.nil?
-      
-      host_name = m_on_server[2]
-      sql += " and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = '#{host_name}')"
-
-      sql
+      result = Appstats::Result.new(:result_type => :on_demand, :query => @query, :query_as_sql => @query_to_sql, :action => @action, :host => @host, :from_date => @date_range.from_date, :to_date => @date_range.to_date)
+      result.count = ActiveRecord::Base.connection.select_one(@query_to_sql)["count(*)"].to_i
+      result.save
+      result
     end
     
     def self.host_filter_to_sql(raw_input)
@@ -65,6 +47,36 @@ module Appstats
         action = Appstats::Action.where("plural_name = ?",action_name).first
         action.nil? ? action_name : action.name 
       end
+      
+      def parse_query
+        @query_to_sql = "select count(*) from appstats_entries"
+        @action = nil
+        @host = nil
+        @date_range = DateRange.new
+        return @query_to_sql if @query.nil?
+        current_query = @query
+
+        m = current_query.match(/^\s*(\#)\s*([^\s]*)\s*(.*)/)
+        return @query_to_sql if m.nil?
+        if m[1] == "#"
+          @action = normalize_action_name(m[2])
+          @query_to_sql += " where action = '#{@action}'"
+        end
+        current_query = m[3]
+
+        m_on_server = current_query.match(/^(.*)?\s*on\s*server\s*(.*)$/)
+        date_range_text = m_on_server.nil? ? current_query : m_on_server[1]
+        if date_range_text.size > 0
+          @date_range = DateRange.parse(date_range_text)
+          @query_to_sql += " and #{@date_range.to_sql}" unless @date_range.to_sql == "1=1"
+        end
+        return @query_to_sql if m_on_server.nil?
+
+        @host = m_on_server[2]
+        @query_to_sql += " and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = '#{@host}')"
+
+        @query_to_sql
+      end      
     
     
   end
