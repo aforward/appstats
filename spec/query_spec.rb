@@ -19,11 +19,11 @@ module Appstats
       end
       
     end
-
+    
     describe "#input" do
     
       it "should set the inputs to nil if input invalid" do
-        query = Appstats::Query.new(:query => "# myblahs today on server xyz.localnet")
+        query = Appstats::Query.new(:query => "# myblahs today on xyz.localnet")
         query.query = nil
         query.action.should == nil
         query.host.should == nil
@@ -32,10 +32,24 @@ module Appstats
       end
     
       it "should set the action and host" do
-        query = Appstats::Query.new(:query => "# myblahs today on server xyz.localnet")
+        query = Appstats::Query.new(:query => "# myblahs today on xyz.localnet")
         query.action.should == "myblahs"
         query.host.should == "xyz.localnet"
         query.date_range.should == DateRange.parse("today")
+      end
+    
+      it "should understand the short hand 'on' instead of 'on server'" do
+        query = Appstats::Query.new(:query => "# myblahs on xyz.localnet")
+        query.action.should == "myblahs"
+        query.host.should == "xyz.localnet"
+        query.date_range.should == DateRange.new
+      end
+    
+      it "should understand the old 'on server' instead of new 'on'" do
+        query = Appstats::Query.new(:query => "# myblahs on server xyz.localnet")
+        query.action.should == "myblahs"
+        query.host.should == "xyz.localnet"
+        query.date_range.should == DateRange.new
       end
     
     end
@@ -52,7 +66,7 @@ module Appstats
         result.new_record?.should == false
         result.should == Appstats::Result.new(:result_type => :on_demand, :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs")
       end
-
+    
       it "should track the count if available" do
         Appstats::Entry.create(:action => "myblahs")
         query = Appstats::Query.new(:query => "# myblahs")
@@ -60,7 +74,7 @@ module Appstats
         Appstats::Entry.create(:action => "myblahs")
         query.run.count.should == 2
       end
-
+    
     end
     
     
@@ -72,7 +86,7 @@ module Appstats
       end
       
       it "should return understand nil" do
-        expected_sql = "select count(*) from appstats_entries"
+        expected_sql = "select 0 from appstats_entries LIMIT 1"
         Appstats::Query.new(:query => nil).query_to_sql.should == expected_sql
         Appstats::Query.new(:query => "").query_to_sql.should == expected_sql
         Appstats::Query.new.query_to_sql.should == expected_sql
@@ -99,22 +113,36 @@ module Appstats
           Appstats::Query.new(:query => "# logins since 2010-01-15").query_to_sql.should == expected_sql
         end
       end
-
+    
       describe "server_name" do
         
-        it "should on server_name" do
+        it "should on_name" do
           expected_sql = "select count(*) from appstats_entries where action = 'login' and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = 'my.localnet')"
-          Appstats::Query.new(:query => "# logins on server my.localnet").query_to_sql.should == expected_sql
+          Appstats::Query.new(:query => "# logins on my.localnet").query_to_sql.should == expected_sql
         end
-
+    
       end
       
       describe "date range and server_name" do
-        it "should understand  dates and 'on server'" do
+        it "should understand  dates and 'on'" do
           expected_sql = "select count(*) from appstats_entries where action = 'login' and (occurred_at >= '2010-01-15 00:00:00' and occurred_at <= '2010-01-31 23:59:59') and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = 'your.localnet')"
-          Appstats::Query.new(:query => "# logins between 2010-01-15 and 2010-01-31 on server your.localnet").query_to_sql.should == expected_sql
+          Appstats::Query.new(:query => "# logins between 2010-01-15 and 2010-01-31 on your.localnet").query_to_sql.should == expected_sql
         end
       end
+    
+      describe "where clause" do
+        
+        it "should understand no quotes" do
+          pending "Refactored query to use a homebrew 'parser'"
+          # expected_sql = "select count(*) from appstats_entries where action = 'login' and EXISTS(select * from appstats_contexts where appstats_contexts.appstats_entry_id=appstats_entries.id and context_key='user' and context_value='aforward' )"
+          # Appstats::Query.new(:query => "# logins where user=aforward").query_to_sql.should == expected_sql
+        end
+        
+        
+      end
+      
+      
+      
     end
     
     describe "#host_filter_to_sql" do

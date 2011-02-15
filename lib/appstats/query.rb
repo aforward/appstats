@@ -2,6 +2,7 @@
 module Appstats
   class Query
 
+    @@nill_query = "select 0 from appstats_entries LIMIT 1"
     @@default = "1=1"
     attr_accessor :query, :action, :host, :date_range, :query_to_sql
 
@@ -49,35 +50,49 @@ module Appstats
       end
       
       def parse_query
-        @query_to_sql = "select count(*) from appstats_entries"
-        @action = nil
-        @host = nil
-        @date_range = DateRange.new
-        return @query_to_sql if @query.nil?
-        current_query = @query
+        reset_query
+        return nil_query if @query.nil?
+        current_query = fix_legacy_structures(@query)
+        
+        parser = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
+        return nil_query unless parser.parse(current_query)
+        
+        @operation = parser.results[:operation]
+        @action = normalize_action_name(parser.results[:action])
+        @date_range = DateRange.parse(parser.results[:date])
+        @host = parser.results[:host]
+        @contexts = parser.results[:host]
 
-        m = current_query.match(/^\s*(\#)\s*([^\s]*)\s*(.*)/)
-        return @query_to_sql if m.nil?
-        if m[1] == "#"
-          @action = normalize_action_name(m[2])
-          @query_to_sql += " where action = '#{@action}'"
-        end
-        current_query = m[3]
-
-        m_on_server = current_query.match(/^(.*)?\s*on\s*server\s*(.*)$/)
-        date_range_text = m_on_server.nil? ? current_query : m_on_server[1]
-        if date_range_text.size > 0
-          @date_range = DateRange.parse(date_range_text)
+        if @operation == "#"
+          @query_to_sql = "select count(*) from appstats_entries"
+          @query_to_sql += " where action = '#{@action}'" unless @action.blank?
           @query_to_sql += " and #{@date_range.to_sql}" unless @date_range.to_sql == "1=1"
+          @query_to_sql += " and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = '#{@host}')" unless @host.nil?
         end
-        return @query_to_sql if m_on_server.nil?
-
-        @host = m_on_server[2]
-        @query_to_sql += " and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = '#{@host}')"
 
         @query_to_sql
-      end      
-    
+      end    
+      
+      def fix_legacy_structures(raw_input)
+        query = raw_input.gsub(/on\s*server/,"on")
+        query
+      end  
+   
+      def sql_for_conext(context_name,contact_value)
+        "EXISTS(select * from appstats_contexts where appstats_contexts.appstats_entry_id=appstats_entries.id and context_key='#{context_name}' and context_value='#{contact_value}' )"
+      end
+      
+      def nil_query
+        @query_to_sql = @@nill_query
+        @query_to_sql
+      end
+      
+      def reset_query
+        @action = nil
+        @host = nil
+        nil_query
+        @date_range = DateRange.new
+      end
     
   end
 end

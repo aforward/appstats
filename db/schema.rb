@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110210225606) do
+ActiveRecord::Schema.define(:version => 20110215155830) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
@@ -55,6 +55,13 @@ ActiveRecord::Schema.define(:version => 20110210225606) do
   add_index "appstats_entries", ["year", "month", "day"], :name => "index_entries_by_day"
   add_index "appstats_entries", ["year", "month"], :name => "index_entries_by_month"
   add_index "appstats_entries", ["year"], :name => "index_entries_by_year"
+
+  create_table "appstats_hosts", :force => true do |t|
+    t.string   "name"
+    t.string   "status"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "appstats_log_collectors", :force => true do |t|
     t.string   "host"

@@ -12,6 +12,8 @@ require "#{File.dirname(__FILE__)}/appstats/logger"
 require "#{File.dirname(__FILE__)}/appstats/log_collector"
 require "#{File.dirname(__FILE__)}/appstats/query"
 require "#{File.dirname(__FILE__)}/appstats/result"
+require "#{File.dirname(__FILE__)}/appstats/host"
+require "#{File.dirname(__FILE__)}/appstats/parser"
 require "#{File.dirname(__FILE__)}/appstats/test_object"
 
 # required in the appstats.gemspec
