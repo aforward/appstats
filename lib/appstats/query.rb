@@ -4,7 +4,7 @@ module Appstats
 
     @@nill_query = "select 0 from appstats_entries LIMIT 1"
     @@default = "1=1"
-    attr_accessor :query, :action, :host, :date_range, :query_to_sql
+    attr_accessor :query, :action, :host, :date_range, :query_to_sql, :contexts
 
     def initialize(data = {})
       self.query=(data[:query])
@@ -29,17 +29,60 @@ module Appstats
       return @@default if m.nil?
       host = m[1]
       return @@default if host == '' or host.nil?
-      "EXISTS (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = id and host = '#{host}' )"
+      "EXISTS (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = '#{host}' )"
     end
 
-    def self.context_filter_to_sql(raw_input)
-      return @@default if raw_input.nil?
-      m = raw_input.match(/([^']+)=([^']+)/)
-      return @@default if m.nil?
-      key = m[1].strip
-      value = m[2].strip
-      return @@default if key == '' or key.nil?
-      "EXISTS (select * from appstats_contexts where appstats_entries.id = appstats_contexts.appstats_entry_id and context_key='#{key}' and context_value='#{value}' )"
+    def self.contexts_filter_to_sql(raw_input)
+      context_parser = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "|| && = <= >= <> != ( )")
+      return @@default if (raw_input.blank? || !context_parser.parse(raw_input))
+      sql = "EXISTS (select * from appstats_contexts where appstats_entries.id = appstats_contexts.appstats_entry_id and ("
+      
+      status = :next
+      comparator = "="
+      context_parser.raw_results.each do |entry|
+        if entry.kind_of?(String)
+          sqlentry = sqlize(entry)
+          if Query.comparator?(entry) && status == :waiting_comparator
+            comparator = sqlize(entry)
+            status = :waiting_operand
+          else
+            sql += ")" if status == :waiting_comparator
+            sql += " #{sqlentry}"
+            status = :next
+          end
+          next
+        end
+        if status == :next
+          status = :waiting_comparator
+          sql += " (context_key='#{sqlclean(entry[:context])}'"
+        else
+          status = :next
+          sql += " and context_value#{comparator}'#{sqlclean(entry[:context])}')"
+        end
+      end
+      sql += ")" if status == :waiting_comparator
+      sql += "))"
+      sql
+    end
+    
+    def self.sqlize(input)
+      return "and" if input == "&&"
+      return "or" if input == "||"
+      return "<>" if input == "!="
+      input
+    end
+    
+    def self.sqlclean(raw_input)
+      return raw_input if raw_input.blank?
+      m = raw_input.match(/^['"](.*)['"]$/)
+      input = m.nil? ? raw_input : m[1]
+      input = input.gsub(/\\/, '\&\&').gsub(/'/, "''")
+      input
+    end
+    
+    def self.comparator?(raw_input)
+      return false if raw_input.nil?
+      ["=","!=","<>",">","<",">=","<="].include?(raw_input)
     end
     
     private
@@ -61,13 +104,14 @@ module Appstats
         @action = normalize_action_name(parser.results[:action])
         @date_range = DateRange.parse(parser.results[:date])
         @host = parser.results[:host]
-        @contexts = parser.results[:host]
-
+        @contexts = parser.results[:contexts]
+        
         if @operation == "#"
           @query_to_sql = "select count(*) from appstats_entries"
           @query_to_sql += " where action = '#{@action}'" unless @action.blank?
           @query_to_sql += " and #{@date_range.to_sql}" unless @date_range.to_sql == "1=1"
-          @query_to_sql += " and exists (select * from appstats_log_collectors where appstats_entries.appstats_log_collector_id = appstats_log_collectors.id and host = '#{@host}')" unless @host.nil?
+          @query_to_sql += " and #{Query.host_filter_to_sql(@host)}" unless @host.nil?
+          @query_to_sql += " and #{Query.contexts_filter_to_sql(@contexts)}" unless @contexts.nil?
         end
 
         @query_to_sql

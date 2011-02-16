@@ -2,12 +2,15 @@
 module Appstats
   class Parser
 
-    attr_reader :rules, :raw_rules, :results, :raw_results, :constants
+    attr_reader :raw_rules, :rules, :repeating, :raw_tokenize, :tokenize, :tokenize_no_spaces, :tokenize_regex, :tokenize_regex_no_spaces, :results, :raw_results, :constants
 
     def initialize(data = {})
       @raw_rules = data[:rules]
-      @results = nil
-      @raw_results = nil
+      @raw_tokenize = data[:tokenize]
+      @repeating = data[:repeating] == true
+      @results = {}
+      @raw_results = []
+      update_tokens
       update_rules
     end
 
@@ -25,7 +28,9 @@ module Appstats
       
       while !@text_so_far.blank?
         process_constant_if_present
-        break if @rule_index > @max_rule_index
+        break if @rule_index > @max_rule_index && !@repeating
+        @rule_index = 0 if @rule_index > @max_rule_index
+
         rule = @rules[@rule_index]
         @rule_index += 1
         
@@ -33,7 +38,7 @@ module Appstats
           if rule[:stop] == :constant
             was_found = false
             @remaining_constants.each_with_index do |k,index|
-              p = Parser.parse_word(@text_so_far,k,true)
+              p = parse_word(@text_so_far,k,true)
               if p[0].nil?
                 unset_rules_until(k)
               else
@@ -51,15 +56,15 @@ module Appstats
               @text_so_far = nil
             end
           else
-            p = Parser.parse_word(@text_so_far,rule[:stop],false)
+            p = parse_word(@text_so_far,rule[:stop],false)
             add_results(rule[:rule],p[0])
             @text_so_far = p[1]
           end
-          
         end
-        return false if @previous_text_so_far == @text_so_far
+        break if @previous_text_so_far == @text_so_far
         @previous_text_so_far = @text_so_far
       end
+      remove_tokens_at_start(@text_so_far)
       unset_rules_until(nil)
       true
     end
@@ -68,24 +73,47 @@ module Appstats
       answer = [nil,nil]
       return answer if current_text.blank? || constant.nil?
       current_text.strip!
-      m = current_text.match(/^(#{constant})(.*)$/i)
+      m = current_text.match(/^(#{constant})(.*)$/im)
       answer[0] = m[1] unless m.nil?
       answer[1] = m.nil? ? current_text : m[2]
       clean_parsed_word(answer)
     end
     
-    def self.parse_word(current_text,stop_on,strict = false)
+    def self.merge_regex_filter(a,b)
+      return "" if a.blank? && b.blank?
+      return "(#{a})" if b.blank?
+      return "(#{b})" if a.blank?
+      "(#{a}|#{b})"
+    end
+    
+    def parse_word(current_text,stop_on,strict = false)
       answer = [nil,nil]
       return answer if current_text.blank? || stop_on.nil?
       current_text.strip!
+
+      current_text = remove_tokens_at_start(current_text)
+
       if stop_on == :end
-        answer[0] = current_text
+        filter = Parser.merge_regex_filter(nil,@tokenize_regex)
+        m = current_text.match(/^(.*?)(#{filter}.*)$/im)
+        if m.nil? || m[1].blank?
+          answer[0] = current_text
+        else
+          answer[0] = m[1]
+          answer[1] = m[2]
+        end
       elsif stop_on == :space
-        m = current_text.match(/^([^\s]*)\s*(.*)$/)
-        answer[0] = m[1]
-        answer[1] = m[2]
+        filter = Parser.merge_regex_filter('\s',@tokenize_regex)
+        m = current_text.match(/^(.*?)(#{filter}.*)$/im)
+        if m.nil?
+          answer[0] = current_text
+        else
+          answer[0] = m[1]
+          answer[1] = m[2]
+        end
       else
-        m = current_text.match(/^(.*)\s*((#{stop_on}).*)$/i)
+        filter = Parser.merge_regex_filter(stop_on,@tokenize_regex)
+        m = current_text.match(/^(.*?)(#{filter}.*)$/im)
         if strict
           answer[0] = m[1] unless m.nil?
           answer[1] = m.nil? ? current_text : m[2]
@@ -94,29 +122,43 @@ module Appstats
           answer[1] = m[2] unless m.nil?
         end
       end
-      clean_parsed_word(answer)
+      Parser.clean_parsed_word(answer)
     end
     
     private
       
       def self.clean_parsed_word(answer)
-        answer[0] = answer[0].strip unless answer[0].nil?
-        answer[1] = answer[1].strip unless answer[1].nil?
+        answer[0].strip! unless answer[0].nil?
+        answer[1].strip! unless answer[1].nil?
         answer[0] = nil if answer[0].blank?
         answer[1] = nil if answer[1].blank?
         answer 
       end
       
       def process_constant_if_present
+        while process_tokens_if_present; end
         to_delete = nil
         @remaining_constants.each do |k|
           p = Parser.parse_constant(@text_so_far,k)
           next if p[0].nil?
           to_delete = k
           unset_rules_until(k)
+          add_constant(p[0])
           @text_so_far = p[1]
         end
         @remaining_constants.delete(to_delete) unless to_delete.nil?
+      end
+      
+      def process_tokens_if_present
+        found = false
+        @tokenize.each do |k|
+          p = Parser.parse_constant(@text_so_far,k)
+          next if p[0].nil?
+          add_constant(p[0])
+          @text_so_far = p[1]
+          found = true
+        end
+        found
       end
       
       def unset_rules_until(k)
@@ -125,6 +167,25 @@ module Appstats
           break if rule.eql?(k)
           add_results(rule[:rule],nil) if rule.kind_of?(Hash)
         end
+      end
+      
+      def update_tokens
+        @tokenize = []
+        @tokenize_no_spaces = []
+        @tokenize_regex = nil
+        @tokenize_regex_no_spaces = nil
+        return if @raw_tokenize.blank?
+        @raw_tokenize.split(" ").each do |token|
+          current_token = token.upcase
+          current_token.gsub!("(",'\(')
+          current_token.gsub!(")",'\)')
+          current_token.gsub!("|",'\|')
+          @tokenize_no_spaces<< current_token
+          current_token = "\\s+#{current_token}" unless current_token.match(/.*[a-z].*/i).nil?
+          @tokenize<< current_token
+        end
+        @tokenize_regex_no_spaces = @tokenize_no_spaces.join("|")
+        @tokenize_regex = @tokenize.join("|")
       end
       
       def update_rules
@@ -139,7 +200,7 @@ module Appstats
             previous_stop_on = :space
           else
             current_rule = rule.upcase
-            constants<< current_rule
+            @constants<< current_rule
             previous_stop_on = :constant
           end
 
@@ -151,9 +212,27 @@ module Appstats
         end
       end
 
+      def add_constant(value)
+        @raw_results<< value
+      end
+
       def add_results(rule_name,value)
         @raw_results<< { rule_name => value }
         @results[rule_name] = value
+      end
+
+      def remove_tokens_at_start(current_text)
+        return current_text if current_text.blank?
+        current_text.blank?
+        loop do
+          break if @tokenize_regex.blank?
+          m = current_text.match(/^(#{@tokenize_regex_no_spaces})(.*)$/im)
+          break if m.nil? || m[1].blank?
+          add_constant(m[1])
+          current_text = m[2]
+          current_text.strip! unless current_text.nil?
+        end
+        current_text
       end
 
   end
