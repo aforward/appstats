@@ -102,7 +102,7 @@ module Appstats
         current_entries = 0
         begin
           File.open(log_collector.local_filename,"r").readlines.each do |line|
-            entry = Entry.load_from_logger_entry(line.strip)
+            entry = Entry.create_from_logger_string(line.strip)
             entry.log_collector = log_collector
             entry.save
             current_entries += 1

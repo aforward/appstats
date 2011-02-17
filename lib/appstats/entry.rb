@@ -35,16 +35,16 @@ module Appstats
       "#{action} at #{occurred_at.strftime('%Y-%m-%d %H:%M:%S')}"
     end
     
-    def self.load_from_logger_file(filename)
+    def self.create_from_logger_file(filename)
       return false if filename.nil?
       return false unless File.exists?(filename)
       File.open(filename,"r").readlines.each do |line|
-        load_from_logger_entry(line.strip)
+        create_from_logger_string(line.strip)
       end
       true
     end
     
-    def self.load_from_logger_entry(action_and_contexts)
+    def self.create_from_logger_string(action_and_contexts)
       return false if action_and_contexts.nil? || action_and_contexts == ''
       hash = Logger.entry_to_hash(action_and_contexts)
       entry = Appstats::Entry.new(:action => hash[:action], :raw_entry => action_and_contexts)
@@ -59,6 +59,10 @@ module Appstats
       entry
     end
   
+    def self.create_from_logger(action,contexts = {})
+      return false if action.nil? || action.blank?
+      create_from_logger_string(Logger.entry_to_s(action,contexts))
+    end
     
     private
     

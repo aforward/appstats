@@ -2,6 +2,9 @@
 module Appstats
   class Query
 
+    @@language_parser = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
+    @@contexts_parser = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "and or || && = <= >= <> != ( ) like")
+
     @@nill_query = "select 0 from appstats_entries LIMIT 1"
     @@default = "1=1"
     attr_accessor :query, :action, :host, :date_range, :query_to_sql, :contexts
@@ -33,7 +36,7 @@ module Appstats
     end
 
     def self.contexts_filter_to_sql(raw_input)
-      context_parser = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "|| && = <= >= <> != ( )")
+      context_parser = @@contexts_parser.dup
       return @@default if (raw_input.blank? || !context_parser.parse(raw_input))
       sql = "EXISTS (select * from appstats_contexts where appstats_entries.id = appstats_contexts.appstats_entry_id and ("
       
@@ -54,10 +57,10 @@ module Appstats
         end
         if status == :next
           status = :waiting_comparator
-          sql += " (context_key='#{sqlclean(entry[:context])}'"
+          sql += " (context_key = '#{sqlclean(entry[:context])}'"
         else
           status = :next
-          sql += " and context_value#{comparator}'#{sqlclean(entry[:context])}')"
+          sql += " and context_value #{comparator} '#{sqlclean(entry[:context])}')"
         end
       end
       sql += ")" if status == :waiting_comparator
@@ -82,7 +85,7 @@ module Appstats
     
     def self.comparator?(raw_input)
       return false if raw_input.nil?
-      ["=","!=","<>",">","<",">=","<="].include?(raw_input)
+      ["=","!=","<>",">","<",">=","<=","like"].include?(raw_input)
     end
     
     private
@@ -97,7 +100,7 @@ module Appstats
         return nil_query if @query.nil?
         current_query = fix_legacy_structures(@query)
         
-        parser = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
+        parser = @@language_parser.dup
         return nil_query unless parser.parse(current_query)
         
         @operation = parser.results[:operation]

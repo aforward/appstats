@@ -74,6 +74,24 @@ module Appstats
         Appstats::Entry.create(:action => "myblahs")
         query.run.count.should == 2
       end
+      
+      it "should perform the action search" do
+        Appstats::Entry.create_from_logger("myblahs", :one => "11", :two => "222")
+        Appstats::Entry.create_from_logger("myblahs", :one => "111", :two => "22")
+
+        query = Appstats::Query.new(:query => "# myblahs where one=11")
+        result = query.run
+        result.count.should == 1
+
+        query = Appstats::Query.new(:query => "# myblahs where one=anything")
+        query.run.count.should == 0
+
+        query = Appstats::Query.new(:query => "# myblahs where one=11 && two=22")
+        query.run.count.should == 0
+
+        query = Appstats::Query.new(:query => "# myblahs where one=11 || two=22")
+        query.run.count.should == 2
+      end
     
     end
     
@@ -133,8 +151,8 @@ module Appstats
      describe "where clause" do
        
        it "should understand no quotes" do
-         expected_sql = "select count(*) from appstats_entries where action = 'login' and EXISTS (select * from appstats_contexts where appstats_entries.id = appstats_contexts.appstats_entry_id and ( (context_key='user' and context_value='aforward')))"
-         Appstats::Query.new(:query => "# logins where user=aforward").query_to_sql.should == expected_sql
+         expected_sql = "select count(*) from appstats_entries where action = 'login' and EXISTS (select * from appstats_contexts where appstats_entries.id = appstats_contexts.appstats_entry_id and ( (context_key = 'user' and context_value = 'aforward')))"
+         Appstats::Query.new(:query => "# logins where user = aforward").query_to_sql.should == expected_sql
        end
      end
     end
@@ -166,26 +184,39 @@ module Appstats
       end
       
       it "should translate a = b into EXISTS query" do
-        Appstats::Query.contexts_filter_to_sql("a=b").should == "#{@template} (context_key='a' and context_value='b')))"
-        Appstats::Query.contexts_filter_to_sql(" a =  b ").should == "#{@template} (context_key='a' and context_value='b')))"
+        Appstats::Query.contexts_filter_to_sql("a=b").should == "#{@template} (context_key = 'a' and context_value = 'b')))"
+        Appstats::Query.contexts_filter_to_sql(" a =  b ").should == "#{@template} (context_key = 'a' and context_value = 'b')))"
       end
           
       it "should ignore single quotes" do
-        Appstats::Query.contexts_filter_to_sql("'aaa'='bbbb'").should == "#{@template} (context_key='aaa' and context_value='bbbb')))"
-        Appstats::Query.contexts_filter_to_sql(" 'aaa' = 'bbbb'  ").should == "#{@template} (context_key='aaa' and context_value='bbbb')))"
+        Appstats::Query.contexts_filter_to_sql("'aaa'='bbbb'").should == "#{@template} (context_key = 'aaa' and context_value = 'bbbb')))"
+        Appstats::Query.contexts_filter_to_sql(" 'aaa' = 'bbbb'  ").should == "#{@template} (context_key = 'aaa' and context_value = 'bbbb')))"
       end
       
       it "should allow for searching for all entries of a certain context" do
-        Appstats::Query.contexts_filter_to_sql("aaa").should == "#{@template} (context_key='aaa')))"
+        Appstats::Query.contexts_filter_to_sql("aaa").should == "#{@template} (context_key = 'aaa')))"
       end
       
       it "should allow for searching for several entries of a certain context" do
-        Appstats::Query.contexts_filter_to_sql("aaa || bbb").should == "#{@template} (context_key='aaa') or (context_key='bbb')))"
+        Appstats::Query.contexts_filter_to_sql("aaa || bbb").should == "#{@template} (context_key = 'aaa') or (context_key = 'bbb')))"
       end
 
       it "should allow complex queries" do
-        Appstats::Query.contexts_filter_to_sql("user='andrew' || user='aforward'").should == "#{@template} (context_key='user' and context_value='andrew') or (context_key='user' and context_value='aforward')))"
+        Appstats::Query.contexts_filter_to_sql("user='andrew' || user='aforward'").should == "#{@template} (context_key = 'user' and context_value = 'andrew') or (context_key = 'user' and context_value = 'aforward')))"
       end
+
+      it "should support or" do
+        Appstats::Query.contexts_filter_to_sql("user='andrew' or user='aforward'").should == "#{@template} (context_key = 'user' and context_value = 'andrew') or (context_key = 'user' and context_value = 'aforward')))"
+      end
+
+      it "should support like" do
+        Appstats::Query.contexts_filter_to_sql("user like '%andrew%'").should == "#{@template} (context_key = 'user' and context_value like '%andrew%')))"
+      end
+
+      it "should support and" do
+        Appstats::Query.contexts_filter_to_sql("user='andrew' and user='aforward'").should == "#{@template} (context_key = 'user' and context_value = 'andrew') and (context_key = 'user' and context_value = 'aforward')))"
+      end
+
       
       it "should do simple 1 = 1 if invalid" do
         Appstats::Query.contexts_filter_to_sql("").should == "1=1"

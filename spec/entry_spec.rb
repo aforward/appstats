@@ -144,17 +144,17 @@ module Appstats
       
     end
     
-    describe "#load_from_logger_file" do
+    describe "#create_from_logger_file" do
       
       it "should handle nil" do
-        Entry.load_from_logger_file(nil).should == false
+        Entry.create_from_logger_file(nil).should == false
         Entry.count.should == @before_count
         Entry.count.should == @before_count
       end
       
       it "should handle unknown files" do
         File.exists?("should_not_exist.txt").should == false
-        Entry.load_from_logger_file("should_not_exist.txt").should == false
+        Entry.create_from_logger_file("should_not_exist.txt").should == false
         Entry.count.should == @before_count
       end
       
@@ -162,25 +162,25 @@ module Appstats
         Appstats::Logger.entry("test_action")
         Appstats::Logger.entry("another_test_action")
         @before_count = Entry.count
-        Entry.load_from_logger_file(Appstats::Logger.filename).should == true
+        Entry.create_from_logger_file(Appstats::Logger.filename).should == true
         Entry.count.should == @before_count + 2
         Entry.last.action.should == "another_test_action"
       end
 
     end
     
-    describe "#load_from_logger_entry" do
+    describe "#create_from_logger_string" do
       
       it "should handle nil" do
-        Entry.load_from_logger_entry(nil).should == false
+        Entry.create_from_logger_string(nil).should == false
         Entry.count.should == @before_count
     
-        Entry.load_from_logger_entry("").should == false
+        Entry.create_from_logger_string("").should == false
         Entry.count.should == @before_count
       end
       
       it "should create an unknown for unknown entries" do
-        entry = Entry.load_from_logger_entry("blah")
+        entry = Entry.create_from_logger_string("blah")
         Entry.count.should == @before_count + 1
         entry.action.should == "UNKNOWN_ACTION"
         entry.raw_entry.should == "blah"
@@ -188,18 +188,18 @@ module Appstats
       end
       
       it "should understand an entry without contexts" do
-        entry = Entry.load_from_logger_entry("0.8.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
+        entry = Entry.create_from_logger_string("0.8.1 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_search"
-        entry.raw_entry.should == "0.8.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
+        entry.raw_entry.should == "0.8.1 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
       end
       
       it "should understand contexts" do
-        entry = Entry.load_from_logger_entry("0.8.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
+        entry = Entry.create_from_logger_string("0.8.1 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_filter"
-        entry.raw_entry.should == "0.8.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
+        entry.raw_entry.should == "0.8.1 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
         entry.contexts.size.should == 2
         entry.contexts[0].context_key = "app_name"
@@ -208,6 +208,24 @@ module Appstats
         entry.contexts[1].context_value = "Live"
       end
       
+    end
+    
+    describe "#create_from_logger" do
+
+      it "should handle nil" do
+        Entry.create_from_logger(nil).should == false
+        Entry.count.should == @before_count
+    
+        Entry.create_from_logger("").should == false
+        Entry.count.should == @before_count
+      end
+      
+      it "should create using the logger entry_to_s" do
+        entry = Entry.create_from_logger("blah")
+        Entry.count.should == @before_count + 1
+        entry.action.should == "blah"
+      end
+   
     end
        
     describe "#log_collector" do
