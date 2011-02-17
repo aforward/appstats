@@ -38,6 +38,8 @@ while($running) do
   end
   Appstats::LogCollector.download_remote_files(appstats_config["remote_servers"])
   Appstats::LogCollector.process_local_files
+  Appstats::Action.update_actions
+  Appstats::Host.update_hosts
   ActiveRecord::Base.connection.disconnect!
   a_day_in_seconds = 60*60*24
   sleep a_day_in_seconds
