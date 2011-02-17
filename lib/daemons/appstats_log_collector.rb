@@ -40,6 +40,8 @@ while($running) do
   Appstats::LogCollector.process_local_files
   Appstats::Action.update_actions
   Appstats::Host.update_hosts
+  Appstats::ContextKey.update_context_keys
+  Appstats::ContextValue.update_context_values
   ActiveRecord::Base.connection.disconnect!
   a_day_in_seconds = 60*60*24
   sleep a_day_in_seconds

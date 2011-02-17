@@ -10,11 +10,25 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110215155830) do
+ActiveRecord::Schema.define(:version => 20110217220357) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
     t.string   "plural_name"
+    t.string   "status"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "appstats_context_keys", :force => true do |t|
+    t.string   "name"
+    t.string   "status"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "appstats_context_values", :force => true do |t|
+    t.string   "name"
     t.string   "status"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -33,6 +47,8 @@ ActiveRecord::Schema.define(:version => 20110215155830) do
   add_index "appstats_contexts", ["context_key", "context_float"], :name => "index_appstats_contexts_on_context_key_and_context_float"
   add_index "appstats_contexts", ["context_key", "context_int"], :name => "index_appstats_contexts_on_context_key_and_context_int"
   add_index "appstats_contexts", ["context_key", "context_value"], :name => "index_appstats_contexts_on_context_key_and_context_value"
+  add_index "appstats_contexts", ["context_key"], :name => "index_appstats_contexts_on_context_key"
+  add_index "appstats_contexts", ["context_value"], :name => "index_appstats_contexts_on_context_value"
 
   create_table "appstats_entries", :force => true do |t|
     t.string   "action"
