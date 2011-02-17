@@ -85,7 +85,11 @@ module Appstats
     
     def self.comparator?(raw_input)
       return false if raw_input.nil?
-      ["=","!=","<>",">","<",">=","<=","like"].include?(raw_input)
+      comparators.include?(raw_input)
+    end
+    
+    def self.comparators
+      ["=","!=","<>",">","<",">=","<=","like"]
     end
     
     private

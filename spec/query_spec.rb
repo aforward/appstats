@@ -278,6 +278,14 @@ module Appstats
       
     end
     
+    describe "#comparators" do
+    
+      it "should be a list " do
+        Appstats::Query.comparators.should == ["=","!=","<>",">","<",">=","<=","like"]
+      end
+    
+    end
+    
     describe "#comparator?" do
 
       it "should not consider nil" do
