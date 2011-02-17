@@ -5,6 +5,7 @@ module Appstats
 
     before(:each) do
       @result = Appstats::Result.new
+      Time.stub!(:now).and_return(Time.parse('2010-09-21 23:15:20'))
     end
 
     describe "#initialize" do
@@ -54,5 +55,64 @@ module Appstats
       end
 
     end
+    
+    describe "#date_to_s" do
+
+      it "should handle nil" do
+        @result.date_to_s.should == ""
+      end
+
+      it "should handle a from date only without a created_at date" do
+        @result.from_date = Time.parse("2010-01-02 03:04:05")
+        @result.date_to_s.should == "2010-01-02 to present"
+      end
+
+      
+      it "should handle a from date only" do
+        @result.from_date = Time.parse("2010-01-02 03:04:05")
+        @result.save
+        @result.date_to_s.should == "2010-01-02 to 2010-09-21"
+      end
+
+      it "should handle a to date only" do
+        @result.to_date = Time.parse("2010-01-02 03:04:05")
+        @result.date_to_s.should == "up to 2010-01-02"
+      end
+
+      it "should handle both a from and to date only" do
+        @result.from_date = Time.parse("2009-01-02 03:04:05")
+        @result.to_date = Time.parse("2010-01-02 03:04:05")
+        @result.date_to_s.should == "2009-01-02 to 2010-01-02"
+      end
+
+      
+    end
+    
+    describe "#from_date_to_s" do
+      
+      it "should handle nil" do
+        @result.from_date_to_s.should == ""
+      end
+      
+      it "should handle a date" do
+        @result.from_date = Time.parse("2010-01-02 03:04:05")
+        @result.from_date_to_s.should == "2010-01-02"
+      end
+      
+    end
+
+    describe "#to_date_to_s" do
+      
+      it "should handle nil" do
+        @result.to_date_to_s.should == ""
+      end
+      
+      it "should handle a date" do
+        @result.to_date = Time.parse("2010-01-02 03:04:06")
+        @result.to_date_to_s.should == "2010-01-02"
+      end
+      
+    end
+    
   end
 end
