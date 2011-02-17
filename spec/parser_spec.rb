@@ -17,6 +17,7 @@ module Appstats
         @parser.rules.should == []
         @parser.tokenize.should == []
         @parser.constants.should == []
+        @parser.constants_no_spaces.should == []
       end
       
       it "should set rules from constructor" do
@@ -27,7 +28,8 @@ module Appstats
         parser.rules.should == [ { :rule => :name, :stop => :constant }, "OR", { :rule => :bust, :stop => :end} ]
         parser.tokenize.should == ["\\s+A","\\s+BB","\\s+C"]
         parser.tokenize_no_spaces.should == ["A","BB","C"]
-        parser.constants.should == ["OR"]
+        parser.constants.should == ["\\s+OR"]
+        parser.constants_no_spaces.should == ["OR"]
       end
     
       it "should espace tokens as required" do
@@ -85,14 +87,34 @@ module Appstats
       end
     
       it "should upper case constants" do
-        Parser.new(:rules => "blah").constants.should == ["BLAH"]
+        Parser.new(:rules => "blah").constants.should == ["\\s+BLAH"]
       end
     
       it "should deal with multiple constants" do
-        Parser.new(:rules => ":name = :blah and :moreblah").constants.should == ["=","AND"]
+        Parser.new(:rules => ":name = :blah and :moreblah").constants.should == ["=","\\s+AND"]
       end
     
     end
+    
+    describe "#constants_no_spaces" do
+      
+      it "should be empty if only variables" do
+        Parser.new(:rules => ":name :blah").constants_no_spaces.should == [ ]
+      end
+    
+      it "should track all constants" do
+        Parser.new(:rules => ":name : :date").constants_no_spaces.should == [ ":" ]
+      end
+    
+      it "should upper case constants" do
+        Parser.new(:rules => "blah").constants_no_spaces.should == ["BLAH"]
+      end
+    
+      it "should deal with multiple constants" do
+        Parser.new(:rules => ":name = :blah and :moreblah").constants_no_spaces.should == ["=","AND"]
+      end
+    
+    end    
      
     describe "#parse_constant" do
     
@@ -214,19 +236,24 @@ module Appstats
     describe "#merge_regex_filter" do
       
       it "should handle nil" do
-        Parser.merge_regex_filter(nil,nil).should == ""
-        Parser.merge_regex_filter('','').should == ""
+        Parser.merge_regex_filter([nil,nil]).should == ""
+        Parser.merge_regex_filter(['','']).should == ""
       end
     
       it "should handle nil on one side" do
-        Parser.merge_regex_filter('\s',nil).should == '(\s)'
-        Parser.merge_regex_filter(nil,'\s').should == '(\s)'
-        Parser.merge_regex_filter('\s','').should == '(\s)'
-        Parser.merge_regex_filter('','\s').should == '(\s)'
+        Parser.merge_regex_filter(['\s',nil]).should == '(\s)'
+        Parser.merge_regex_filter([nil,'\s']).should == '(\s)'
+        Parser.merge_regex_filter(['\s','']).should == '(\s)'
+        Parser.merge_regex_filter(['','\s']).should == '(\s)'
       end
     
       it "should handle both sides" do
-        Parser.merge_regex_filter('\s','a|b').should == '(\s|a|b)'
+        Parser.merge_regex_filter(['\s','a|b']).should == '(\s|a|b)'
+      end
+
+      it "should handle three inputs" do
+        Parser.merge_regex_filter(['\s','a|b','dd']).should == '(\s|a|b|dd)'
+        Parser.merge_regex_filter(['\s','',nil]).should == '(\s)'
       end
       
       
@@ -319,6 +346,14 @@ module Appstats
           parser = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
           parser.parse("# logins between 2010-01-15 and 2010-01-31 on your.localnet").should == true
           parser.results.should == {:operation => "#", :action => "logins", :date => "between 2010-01-15 and 2010-01-31", :host => "your.localnet", :contexts => nil }
+        end
+        
+        it "should handle last week" do
+
+          parser = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
+          parser.parse("# logins last week where service_provider = Cox Communications").should == true
+          parser.results.should == {:operation => "#", :action => "logins", :date => "last week", :host => nil, :contexts => "service_provider = Cox Communications" }
+
         end
         
       end
