@@ -2,8 +2,8 @@
 module Appstats
   class Query
 
-    @@language_parser = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
-    @@contexts_parser = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "and or || && = <= >= <> != ( ) like")
+    @@parser_template = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
+    @@contexts_parser_template = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "and or || && = <= >= <> != ( ) like")
 
     @@nill_query = "select 0 from appstats_entries LIMIT 1"
     @@default = "1=1"
@@ -19,7 +19,7 @@ module Appstats
     end
     
     def run
-      result = Appstats::Result.new(:result_type => :on_demand, :query => @query, :query_as_sql => @query_to_sql, :action => @action, :host => @host, :from_date => @date_range.from_date, :to_date => @date_range.to_date)
+      result = Appstats::Result.new(:result_type => :on_demand, :query => @query, :query_as_sql => @query_to_sql, :action => @action, :host => @host, :from_date => @date_range.from_date, :to_date => @date_range.to_date, :contexts => @contexts)
       result.count = ActiveRecord::Base.connection.select_one(@query_to_sql)["count(*)"].to_i
       result.save
       result
@@ -36,7 +36,7 @@ module Appstats
     end
 
     def self.contexts_filter_to_sql(raw_input)
-      context_parser = @@contexts_parser.dup
+      context_parser = @@contexts_parser_template.dup
       return @@default if (raw_input.blank? || !context_parser.parse(raw_input))
       sql = "EXISTS (select * from appstats_contexts where appstats_entries.id = appstats_contexts.appstats_entry_id and ("
       
@@ -104,7 +104,7 @@ module Appstats
         return nil_query if @query.nil?
         current_query = fix_legacy_structures(@query)
         
-        parser = @@language_parser.dup
+        parser = @@parser_template.dup
         return nil_query unless parser.parse(current_query)
         
         @operation = parser.results[:operation]

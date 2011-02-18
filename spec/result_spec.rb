@@ -17,11 +17,13 @@ module Appstats
         @result.query_as_sql.should == nil
         @result.count.should == nil
         @result.action.should == nil
-        @result.action.should == nil
+        @result.contexts.should == nil
+        @result.from_date.should == nil
+        @result.to_date.should == nil
       end
     
       it "should set on constructor" do
-        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f')
+        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"))
         result.name.should == 'a'
         result.result_type.should == 'b'
         result.query.should == 'c'
@@ -29,6 +31,9 @@ module Appstats
         result.count.should == 10
         result.action.should == 'e'
         result.host.should == 'f'
+        result.contexts.should == 'g'
+        result.from_date_to_s.should == '2010-01-02'
+        result.to_date_to_s.should == '2010-02-03'
       end
     
     end
@@ -36,21 +41,24 @@ module Appstats
     describe "#==" do
       
       it "should be equal on all attributes" do
-        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f')
-        same_result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f')
+        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"))
+        same_result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"))
         (result == same_result).should == true
       end
       
       it "should be not equal if diferent attributes" do
-        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f')
-        different_result = Appstats::Result.new(:name => 'xxx', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f')  
+        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"))
         
-        [:name,:result_type,:query,:query_as_sql,:count,:action,:host].each do |attr|
-          different_result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f')  
-          different_result.send("#{attr}=","XXX")
+        [:name,:result_type,:query,:query_as_sql,:count,:action,:host,:contexts,:from_date,:to_date].each do |attr|
+          different_result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_as_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"))  
+
+          if [:from_date,:to_date].include?(attr)
+            different_result.send("#{attr}=",Time.parse("2011-01-02"))
+          else
+            different_result.send("#{attr}=","XXX")
+          end
           
           different_result.should_not == result
-          (different_result == result).should == false
         end
       end
 

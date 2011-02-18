@@ -61,7 +61,7 @@ module Appstats
             end
           else
             p = parse_word(@text_so_far,rule[:stop],false)
-            add_results(rule[:rule],p[0])
+            add_results(rule[:rule],p[0]) unless p[0].nil?
             @text_so_far = p[1]
           end
         end
@@ -95,7 +95,7 @@ module Appstats
       current_text.strip!
 
       current_text = remove_tokens_at_start(current_text)
-
+      
       if stop_on == :end
         filter = Parser.merge_regex_filter([nil,@tokenize_regex])
         m = current_text.match(/^(.*?)(#{filter}.*)$/im)
@@ -125,7 +125,8 @@ module Appstats
           answer[1] = m[2] unless m.nil?
         end
       end
-      Parser.clean_parsed_word(answer)
+      answer = Parser.clean_parsed_word(answer)
+      answer
     end
     
     private

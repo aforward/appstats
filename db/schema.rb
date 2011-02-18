@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110217220357) do
+ActiveRecord::Schema.define(:version => 20110217234136) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
@@ -102,6 +102,7 @@ ActiveRecord::Schema.define(:version => 20110217220357) do
     t.datetime "to_date"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "contexts"
   end
 
   add_index "appstats_results", ["action"], :name => "index_appstats_results_on_action"

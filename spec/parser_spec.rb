@@ -356,6 +356,12 @@ module Appstats
 
         end
         
+        it "should handle lots of brackets" do
+          parser = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "and or || && = <= >= <> != ( ) like")
+          parser.parse("(a=b and c=4) or (aaa=5)").should == true
+          parser.raw_results.should == ["(", {:context=>"a"}, "=", {:context=>"b"}, "and", {:context=>"c"}, "=", {:context=>"4"}, ")", "or", "(", {:context=>"aaa"}, "=", {:context=>"5"}, ")"]
+        end
+        
       end
       
     end

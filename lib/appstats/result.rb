@@ -2,7 +2,7 @@ module Appstats
   class Result < ActiveRecord::Base
     set_table_name "appstats_results"
 
-    attr_accessible :name, :result_type, :query, :query_as_sql, :count, :action, :host, :from_date, :to_date
+    attr_accessible :name, :result_type, :query, :query_as_sql, :count, :action, :host, :from_date, :to_date, :contexts
 
     def date_to_s
       return "" if from_date.nil? && to_date.nil?
@@ -30,7 +30,7 @@ module Appstats
     private
 
       def state
-        [name, result_type, query, query_as_sql, count, action, host, from_date, to_date]
+        [name, result_type, query, query_as_sql, count, action, host, from_date, to_date,contexts]
       end
 
     
