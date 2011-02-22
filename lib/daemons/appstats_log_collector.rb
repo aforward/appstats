@@ -30,8 +30,15 @@ appstats_config = YAML::load(File.open(options[:config]))
 ActiveRecord::Base.establish_connection(appstats_config['database'])
 require File.join(File.dirname(__FILE__),"..","appstats")
 
+last_processed_at = nil
 Appstats.log(:info,"Started Appstats Log Collector")
 while($running) do
+  unless Appstats::LogCollector.should_process(last_processed_at)
+    an_hour = 60*60
+    sleep an_hour
+    next
+  end
+  last_processed_at = Time.now
   ActiveRecord::Base.connection.reconnect!
   appstats_config["remote_servers"].each do |remote_server|
     Appstats::LogCollector.find_remote_files(remote_server,remote_server[:path],remote_server[:template])
@@ -42,7 +49,6 @@ while($running) do
   Appstats::Host.update_hosts
   Appstats::ContextKey.update_context_keys
   Appstats::ContextValue.update_context_values
+  Appstats::LogCollector.remove_remote_files(appstats_config["remote_servers"])
   ActiveRecord::Base.connection.disconnect!
-  a_day_in_seconds = 60*60*24
-  sleep a_day_in_seconds
 end

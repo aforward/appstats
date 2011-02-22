@@ -11,6 +11,19 @@ module Appstats
       File.expand_path("#{File.dirname(__FILE__)}/../../log/appstats_remote_log_#{id}.log")
     end
 
+    def processed_filename
+      return filename if filename.nil? || filename == ''
+      m = filename.match(/(.*\/)(.*)/)
+      prefix = "__processed__"
+      return "#{prefix}#{filename}" if m.nil?
+      "#{m[1]}#{prefix}#{m[2]}"
+    end
+
+    def self.should_process(last_time)
+      return true if last_time.nil?
+      Time.now.day > last_time.day
+    end
+
     def self.find_remote_files(remote_login,path,log_template)
       begin
         Appstats.log(:info,"Looking for logs in [#{remote_login[:user]}@#{remote_login[:host]}:#{path}] labelled [#{log_template}]")
@@ -120,7 +133,28 @@ module Appstats
       Appstats.log(:info,"Processed #{count} file(s) with #{total_entries} entr(ies).")
       count
     end
+
+    def self.remove_remote_files(remote_login)
+      all = LogCollector.where("status = 'processed'").all
+      if all.empty?
+        Appstats.log(:info,"No remote logs to remove.")
+        return 0
+      end
+      
+      count = 0
+      Appstats.log(:info,"About to remove #{all.size} remote file(s) from the processing queue.")
+      all.each do |log_collector|
+        Net::SSH.start(remote_login[:host], remote_login[:user], :password => remote_login[:password] ) do |ssh|
+         ssh.exec!("mv #{log_collector.filename} #{log_collector.processed_filename}")
+         Appstats.log(:info,"  - #{remote_login[:user]}@#{remote_login[:host]}:#{log_collector.processed_filename}")
+         log_collector.status = "destroyed"
+         log_collector.save
+         count += 1
+        end
+      end
+      Appstats.log(:info,"Removed #{count} remote file(s).")
+      count
+    end
   
   end
-  
 end

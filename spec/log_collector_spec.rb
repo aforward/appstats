@@ -47,6 +47,30 @@ module Appstats
     
     end
     
+    
+    describe "#processed_filename" do
+      
+      it "should handle nil filename" do
+        LogCollector.new.processed_filename.should == nil
+        LogCollector.new(:filename => "").processed_filename.should == ""
+      end
+      
+      it "should handle filenames without slashes" do
+        LogCollector.new(:filename => "blah_blah_blah").processed_filename.should == "__processed__blah_blah_blah"
+      end
+
+      it "should handle filenames with one slash" do
+        LogCollector.new(:filename => "/blah_blah_blah").processed_filename.should == "/__processed__blah_blah_blah"
+      end
+
+      it "should handle filenames with many slash" do
+        LogCollector.new(:filename => "one/two/three/blah_blah_blah").processed_filename.should == "one/two/three/__processed__blah_blah_blah"
+        LogCollector.new(:filename => "/one/two/blah_blah_blah").processed_filename.should == "/one/two/__processed__blah_blah_blah"
+      end
+      
+      
+    end
+    
     describe "#find_remote_files" do
       
       before(:each) do
@@ -289,6 +313,59 @@ module Appstats
         Entry.count.should == @entry_count
       end      
       
+    end
+    
+    describe "#remove_remote_files" do
+
+      before(:each) do
+        @entry_count = Entry.count
+      end
+      
+      it "should ignored non processed files" do
+        log = LogCollector.create(:status => "blah")
+        Appstats.should_receive(:log).with(:info,"No remote logs to remove.")
+        Appstats::LogCollector.remove_remote_files(@login).should == 0
+      end
+
+      it "should log all transactions" do
+        
+        log1 = LogCollector.create(:status => "processed", :filename => "/my/path/log/mystats_2011-01-02.log", :host => "myhost.localnet")
+        log2 = LogCollector.create(:status => "processed", :filename => "/my/path/log/mystats_2011-01-03.log", :host => "myhost.localnet")
+
+        ssh = mock(Net::SSH)
+        Net::SSH.should_receive(:start).twice.with("myhost.localnet","deployer",{ :password => "pass"}).and_yield(ssh)
+        ssh.should_receive(:exec!).with("mv /my/path/log/mystats_2011-01-02.log /my/path/log/__processed__mystats_2011-01-02.log")
+        ssh.should_receive(:exec!).with("mv /my/path/log/mystats_2011-01-03.log /my/path/log/__processed__mystats_2011-01-03.log")
+
+        Appstats.should_receive(:log).with(:info, "About to remove 2 remote file(s) from the processing queue.")
+        Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/__processed__mystats_2011-01-02.log")
+        Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/__processed__mystats_2011-01-03.log")
+        Appstats.should_receive(:log).with(:info, "Removed 2 remote file(s).")
+
+        Appstats::LogCollector.remove_remote_files(@login).should == 2
+        log1.reload and log2.reload
+        log1.status.should == "destroyed"
+        log2.status.should == "destroyed"
+      end
+    end
+    
+    describe "#should_process" do
+      
+      it "should be true for nil" do
+        LogCollector.should_process(nil).should == true
+      end
+      
+      it "should want an update if not in the same day" do
+        last_time = Time.parse("2010-01-02")
+        Time.stub!(:now).and_return(Time.parse('2010-01-03'))
+        LogCollector.should_process(last_time).should == true
+      end
+
+      it "should not want an update if same day" do
+        last_time = Time.parse("2010-01-02")
+        Time.stub!(:now).and_return(Time.parse('2010-01-02'))
+        LogCollector.should_process(last_time).should == false
+      end
     end
     
     
