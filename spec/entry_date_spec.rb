@@ -75,6 +75,15 @@ module Appstats
       end
     end
 
+    describe "#end_of_quarter" do
+      it "should return the same 'level' data points" do
+        now = EntryDate.new(:year => 2010, :month => 1, :day => 5, :hour => 10)
+        expected = EntryDate.new(:year => 2010, :month => 3)
+        now.end_of_quarter.should == expected
+      end
+    end
+
+
     describe "#parse" do
 
       it "should deal with nil" do
@@ -118,6 +127,10 @@ module Appstats
         EntryDate.parse("last year").should == EntryDate.new(:year => 2009)
       end
 
+      it "should understand last quarter" do
+        EntryDate.parse("last quarter").should == EntryDate.new(:year => 2009, :month => 10)
+      end
+
       it "should understand last month" do
         EntryDate.parse("last month").should == EntryDate.new(:year => 2009, :month => 12)
       end
@@ -134,6 +147,10 @@ module Appstats
         EntryDate.parse("previous year").should == EntryDate.new(:year => 2009)
       end
 
+      it "should understand previous quarter" do
+        EntryDate.parse("previous quarter").should == EntryDate.new(:year => 2009, :month => 10)
+      end
+
       it "should understand previous month" do
         EntryDate.parse("previous month").should == EntryDate.new(:year => 2009, :month => 12)
       end
@@ -148,6 +165,10 @@ module Appstats
 
       it "should understand this year" do
         EntryDate.parse("this year").should == EntryDate.new(:year => 2010)
+      end
+
+      it "should understand this quarter" do
+        EntryDate.parse("this quarter").should == EntryDate.new(:year => 2010, :month => 1)
       end
 
       it "should understand this month" do
@@ -167,6 +188,13 @@ module Appstats
         EntryDate.parse("last 2 years").should == EntryDate.new(:year => 2009)
         EntryDate.parse("last 3 years").should == EntryDate.new(:year => 2008)
       end
+
+      it "should understand last X quarters" do
+        EntryDate.parse("last 1 quarter").should == EntryDate.new(:year => 2010, :month => 1)
+        EntryDate.parse("last 2 quarters").should == EntryDate.new(:year => 2009, :month => 10)
+        EntryDate.parse("last 3 quarters").should == EntryDate.new(:year => 2009, :month => 7)
+      end
+
 
       it "should understand last X months" do
         EntryDate.parse("last 1 month").should == EntryDate.new(:year => 2010, :month => 1)
@@ -190,6 +218,12 @@ module Appstats
         EntryDate.parse("previous 1 year").should == EntryDate.new(:year => 2009)
         EntryDate.parse("previous 2 years").should == EntryDate.new(:year => 2008)
         EntryDate.parse("previous 3 years").should == EntryDate.new(:year => 2007)
+      end
+
+      it "should understand previous X quarters" do
+        EntryDate.parse("previous 1 quarter").should == EntryDate.new(:year => 2009, :month => 10)
+        EntryDate.parse("previous 2 quarters").should == EntryDate.new(:year => 2009, :month => 7)
+        EntryDate.parse("previous 3 quarters").should == EntryDate.new(:year => 2009, :month => 4)
       end
 
       it "should understand previous X months" do

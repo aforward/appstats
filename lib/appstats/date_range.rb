@@ -115,18 +115,21 @@ module Appstats
       end
 
 
-      m = input.match(/^this\s*(year|month|week|day)$/)
+      m = input.match(/^this\s*(year|quarter|month|week|day)$/)
       unless m.nil?
         range.from = EntryDate.parse(input)
-        range.format = m[1] == "week" ? :inclusive : :fixed_point
+        range.format = ["week","quarter"].include?(m[1]) ? :inclusive : :fixed_point
         return range
       end
 
-      m = input.match(/^(last|previous)\s*(year|month|week|day)$/)
+      m = input.match(/^(last|previous)\s*(year|quarter|month|week|day)$/)
       unless m.nil?
         range.from = EntryDate.parse(input)
         if m[2] == "week"
           range.to = range.from.end_of_week
+          range.format = :inclusive
+        elsif m[2] == "quarter"
+          range.to = range.from.end_of_quarter
           range.format = :inclusive
         else
           range.format = :fixed_point  
@@ -134,18 +137,22 @@ module Appstats
         return range
       end
 
-      m = input.match(/^last\s*(.+)\s*(year|years|month|months|week|weeks|day|days)$/)
+      m = input.match(/^last\s*(.+)\s*(year|years|quarter|quarters|month|months|week|weeks|day|days)$/)
       unless m.nil?
         range.from = EntryDate.parse(input)
         range.format = :inclusive
         return range
       end
 
-      m = input.match(/^previous\s*(.+)\s*(year|month|week|day)s?$/)
+      m = input.match(/^previous\s*(.+)\s*(year|quarter|month|week|day)s?$/)
       unless m.nil?
         range.from = EntryDate.parse(input)
         to = EntryDate.parse("last #{m[2]}")
-        to = to.end_of_week if m[2] == "week"
+        if m[2] == "week"
+          to = to.end_of_week
+        elsif m[2] == "quarter"
+          to = to.end_of_quarter  
+        end
         range.to = to
         range.format = :inclusive
         return range

@@ -22,6 +22,11 @@ module Appstats
       week  
     end
 
+    def end_of_quarter
+      t = to_time.end_of_quarter
+      EntryDate.new(:year => t.year, :month => t.month)
+    end
+
     def to_time(mode = :start)
       return Time.now if @year.nil?
       t = Time.parse("#{@year}-#{@month||'01'}-#{@day||'01'} #{@hour||'00'}:#{@min||'00'}:#{@sec||'00'}")
@@ -79,6 +84,9 @@ module Appstats
         t_parts = [:year,:month,:day]
       elsif input.match(/^this year$/)
         t_parts = [:year]
+      elsif input.match(/^this quarter$/)
+        t = t.beginning_of_quarter
+        t_parts = [:year,:month]
       elsif input.match(/^this month$/)
         t_parts = [:year,:month]
       elsif input.match(/^this week$/)
@@ -98,6 +106,13 @@ module Appstats
       if m
         t -= last_date_offset(m).year
         t_parts = [:year]
+      end
+
+      m = input.match(/^(last|previous)\s*(\d*)\s*quarters?$/)
+      if m
+        t = t.beginning_of_quarter
+        last_date_offset(m).times { t = (t - 1.day).beginning_of_quarter }
+        t_parts = [:year,:month]
       end
       
       m = input.match(/^(last|previous)\s*(\d*)\s*months?$/)

@@ -82,10 +82,14 @@ module Appstats
         DateRange.parse("  yesterday  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 14), :to => nil, :format => :fixed_point )
       end
 
-      describe "this (year|month|week|day)" do
+      describe "this (year|quarter|month|week|day)" do
 
         it "should understand this year" do
           DateRange.parse("  this year  ").should == DateRange.new(:from => EntryDate.new(:year => 2010), :to => nil, :format => :fixed_point )
+        end
+
+        it "should understand this quarter" do
+          DateRange.parse("  this quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1), :to => nil, :format => :inclusive )
         end
 
         it "should understand this month" do
@@ -102,10 +106,14 @@ module Appstats
                 
       end
 
-      describe "(last|previous) (year|month|week|day)" do
+      describe "(last|previous) (year|quarter|month|week|day)" do
 
         it "should understand last year" do
           DateRange.parse("  last year  ").should == DateRange.new(:from => EntryDate.new(:year => 2009), :to => nil, :format => :fixed_point )
+        end
+
+        it "should understand last quarter" do
+          DateRange.parse("  last quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => EntryDate.new(:year => 2009, :month => 12), :format => :inclusive )
         end
 
         it "should understand last month" do
@@ -138,12 +146,18 @@ module Appstats
                 
       end
 
-      describe "last X (year|month|week|day)s" do
+      describe "last X (year|quarter|month|week|day)s" do
         
         it "should understand last X years" do
           DateRange.parse("  last 1 year  ").should == DateRange.new(:from => EntryDate.new(:year => 2010), :to => nil, :format => :inclusive )
           DateRange.parse("  last 2 years  ").should == DateRange.new(:from => EntryDate.new(:year => 2009), :to => nil, :format => :inclusive )
           DateRange.parse("  last 3 years  ").should == DateRange.new(:from => EntryDate.new(:year => 2008), :to => nil, :format => :inclusive )
+        end
+
+        it "should understand last X quarters" do
+          DateRange.parse("  last 1 quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1), :to => nil, :format => :inclusive )
+          DateRange.parse("  last 2 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => nil, :format => :inclusive )
+          DateRange.parse("  last 3 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 7), :to => nil, :format => :inclusive )
         end
 
         it "should understand last X months" do
@@ -166,12 +180,18 @@ module Appstats
 
       end
 
-      describe "previous X (year|month|week|day)s" do
+      describe "previous X (year|quarter|month|week|day)s" do
       
         it "should understand previous X years" do
           DateRange.parse("  previous 1 year  ").should == DateRange.new(:from => EntryDate.new(:year => 2009), :to => EntryDate.new(:year => 2009), :format => :inclusive )
           DateRange.parse("  previous 2 years  ").should == DateRange.new(:from => EntryDate.new(:year => 2008), :to => EntryDate.new(:year => 2009), :format => :inclusive )
           DateRange.parse("  previous 3 years  ").should == DateRange.new(:from => EntryDate.new(:year => 2007), :to => EntryDate.new(:year => 2009), :format => :inclusive )
+        end
+
+        it "should understand previous Y quarters" do
+          DateRange.parse("  previous 1 quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => EntryDate.new(:year => 2009, :month => 12), :format => :inclusive )
+          DateRange.parse("  previous 2 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 7), :to => EntryDate.new(:year => 2009, :month => 12), :format => :inclusive )
+          DateRange.parse("  previous 3 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 4), :to => EntryDate.new(:year => 2009, :month => 12), :format => :inclusive )
         end
 
         it "should understand previous Y months" do
