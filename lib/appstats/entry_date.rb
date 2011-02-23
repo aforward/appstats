@@ -30,16 +30,23 @@ module Appstats
       EntryDate.new(:year => t.year, :month => t.month, :quarter => EntryDate.calculate_quarter_of(t))
     end
 
-    def to_time(mode = :start)
+    def to_time(mode = :beginning)
       return Time.now if @year.nil?
       t = Time.parse("#{@year}-#{@month||'01'}-#{@day||'01'} #{@hour||'00'}:#{@min||'00'}:#{@sec||'00'}")
       
-      if mode == :end
-        t = t.end_of_year if @month.nil?
-        t = t.end_of_month if @day.nil?
-        t = t.end_of_day if @hour.nil?
+      if @month.nil?
+        method = "_of_year"
+      elsif !@quarter.nil?
+        method = "_of_quarter"
+      elsif !@week.nil?
+        method = "_of_week"
+      elsif @day.nil?
+        method = "_of_month"
+      elsif @hour.nil?
+        method = "_of_day"
       end
-      t
+      return t if method.nil?
+      t.send("#{mode}#{method}")
     end
 
     def to_s

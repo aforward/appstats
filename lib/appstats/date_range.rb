@@ -12,7 +12,7 @@ module Appstats
     
     def from_date
       return nil if @from.nil?
-      mode = @format == :exclusive ? :end : :start
+      mode = @format == :exclusive ? :end : :beginning
       @from.to_time(mode)
     end
     
@@ -21,7 +21,7 @@ module Appstats
         return @from.to_time(:end)
       end
       return nil if @to.nil?
-      mode = @format == :exclusive ? :start : :end
+      mode = @format == :exclusive ? :beginning : :end
       @to.to_time(mode)
     end
     

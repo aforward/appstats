@@ -75,6 +75,11 @@ module Appstats
         @result.date_to_s.should == "2010-01-02 to present"
       end
 
+      it "should return one date if 'today'" do
+        @result.from_date = Time.parse("2010-01-02 03:04:05")
+        @result.to_date = Time.parse("2010-01-02 04:05:06")
+        @result.date_to_s.should == "2010-01-02"
+      end
       
       it "should handle a from date only" do
         @result.from_date = Time.parse("2010-01-02 03:04:05")

@@ -6,10 +6,26 @@ module Appstats
 
     def date_to_s
       return "" if from_date.nil? && to_date.nil?
-      return "#{from_date_to_s} to present" if !from_date.nil? && to_date.nil? && created_at.nil?
-      return "#{from_date_to_s} to #{created_at.strftime('%Y-%m-%d')}" if !from_date.nil? && to_date.nil? && !created_at.nil?
-      return "up to #{to_date_to_s}" if from_date.nil? && !to_date.nil?
-      "#{from_date_to_s} to #{to_date_to_s}"
+      
+      from_s = nil
+      to_s = nil
+      
+      if !from_date.nil? && to_date.nil? && created_at.nil?
+        from_s = from_date_to_s
+        to_s = "present"
+      elsif !from_date.nil? && to_date.nil? && !created_at.nil?
+        from_s = from_date_to_s
+        to_s = created_at.strftime('%Y-%m-%d')
+      elsif from_date.nil? && !to_date.nil?
+        from_s = "up"
+        to_s = to_date_to_s
+      else
+        from_s = from_date_to_s
+        to_s = to_date_to_s
+      end
+      
+      return from_s if from_s == to_s
+      "#{from_s} to #{to_s}"
     end
 
     def from_date_to_s

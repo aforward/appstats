@@ -112,12 +112,41 @@ module Appstats
         query.run.count.should == 2
       end
     
-      it "should hard code fixed_points" do
-        query = Appstats::Query.new(:query => "# myblahs last month")
-        result = query.run
-        result.date_to_s.should == "2010-08-01 to 2010-08-31"
+      describe "fixed_points searches" do
+
+        it "should handle year" do
+          query = Appstats::Query.new(:query => "# myblahs last year")
+          result = query.run
+          result.date_to_s.should == "2009-01-01 to 2009-12-31"
+        end
+
+        it "should handle quarter" do
+          query = Appstats::Query.new(:query => "# myblahs last quarter")
+          result = query.run
+          result.date_to_s.should == "2010-04-01 to 2010-06-30"
+        end
+
+        it "should handle month" do
+          query = Appstats::Query.new(:query => "# myblahs last month")
+          result = query.run
+          result.date_to_s.should == "2010-08-01 to 2010-08-31"
+        end
+
+        it "should handle week" do
+          query = Appstats::Query.new(:query => "# myblahs last week")
+          result = query.run
+          result.date_to_s.should == "2010-09-13 to 2010-09-19"
+        end
+
+        it "should handle day" do
+          query = Appstats::Query.new(:query => "# myblahs last day")
+          result = query.run
+          result.date_to_s.should == "2010-09-20"
+        end
+        
       end
     
+
     end
     
     

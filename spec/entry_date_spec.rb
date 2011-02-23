@@ -55,6 +55,18 @@ module Appstats
         EntryDate.new(:year => 2010, :month => 2).to_time.should == Time.parse("2010-02-01 00:00:00")
       end
 
+      it "should handle quarter" do
+        EntryDate.new(:year => 2010, :month => 2, :quarter => 1).to_time(:beginning).should == Time.parse("2010-01-01 00:00:00")
+        EntryDate.new(:year => 2010, :month => 2, :quarter => 1).to_time(:end).to_s.should == Time.parse("2010-03-31 23:59:59").to_s
+        EntryDate.new(:year => 2010, :month => 2, :quarter => 1).to_time.should == Time.parse("2010-01-01 00:00:00")
+      end
+
+      it "should handle week" do
+        EntryDate.new(:year => 2010, :month => 2, :day => 16, :week => 7).to_time(:beginning).should == Time.parse("2010-02-15 00:00:00")
+        EntryDate.new(:year => 2010, :month => 2, :day => 16, :week => 7).to_time(:end).to_s.should == Time.parse("2010-02-21 23:59:59").to_s
+        EntryDate.new(:year => 2010, :month => 2, :day => 16, :week => 7).to_time.should == Time.parse("2010-02-15 00:00:00")
+      end
+
       it "should handle now" do
         EntryDate.new.to_time.should == Time.now
       end

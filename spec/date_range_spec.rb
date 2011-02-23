@@ -270,6 +270,8 @@ module Appstats
 
       it "should handle fixed points" do
         DateRange.new(:from => EntryDate.new(:year => 2009), :to => nil, :format => :fixed_point ).from_date.to_s.should == Time.parse("2009-01-01 00:00:00").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :quarter => 4), :to => nil, :format => :fixed_point ).from_date.to_s.should == Time.parse("2009-10-01 00:00:00").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :day => 2, :week => 39), :to => nil, :format => :fixed_point ).from_date.to_s.should == Time.parse("2009-09-28 00:00:00").to_s
         DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => nil, :format => :fixed_point ).from_date.to_s.should == Time.parse("2009-10-01 00:00:00").to_s
         DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :day => 3), :to => nil, :format => :fixed_point ).from_date.to_s.should == Time.parse("2009-10-03 00:00:00").to_s
         DateRange.new(:from => nil, :to => nil, :format => :fixed_point ).from_date.should == nil
@@ -295,7 +297,10 @@ module Appstats
       it "should handle fixed points" do
         DateRange.new(:from => EntryDate.new(:year => 2009), :to => nil, :format => :fixed_point ).to_date.to_s.should == Time.parse("2009-12-31 23:59:59").to_s
         DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => nil, :format => :fixed_point ).to_date.to_s.should == Time.parse("2009-10-31 23:59:59").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :quarter => 4), :to => nil, :format => :fixed_point ).to_date.to_s.should == Time.parse("2009-12-31 23:59:59").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :day => 2, :week => 39), :to => nil, :format => :fixed_point ).to_date.to_s.should == Time.parse("2009-10-04 23:59:59").to_s
         DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :day => 3), :to => nil, :format => :fixed_point ).to_date.to_s.should == Time.parse("2009-10-03 23:59:59").to_s
+
         DateRange.new(:from => nil, :to => nil, :format => :fixed_point ).to_date.should == nil
       end
 
