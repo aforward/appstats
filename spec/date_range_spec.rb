@@ -325,10 +325,30 @@ module Appstats
         DateRange.new(:from => @date1, :format => :exclusive).to_sql.should == "occurred_at > '2010-10-31 23:59:59'"
       end
     
-      it "should support from, fixed_point" do
+      it "should support from, fixed_point, month" do
         DateRange.new(:from => @date1, :format => :fixed_point).to_sql.should == "(year=2010 and month=10)"
       end
-    
+
+      it "should support from, fixed_point, quarter" do
+        quarter = EntryDate.new(:year => 2010, :month => 3, :quarter => 1)
+        DateRange.new(:from => quarter, :format => :fixed_point).to_sql.should == "(year=2010 and quarter=1)"
+      end
+
+      it "should support from, fixed_point, week" do
+        week = EntryDate.new(:year => 2010, :month => 1, :day => 15, :week => 2)
+        DateRange.new(:from => week, :format => :fixed_point).to_sql.should == "(year=2010 and week=2)"
+      end
+
+      it "should support from, fixed_point, last week of year" do
+        week = EntryDate.new(:year => 2010, :month => 12, :day => 30, :week => 52)
+        DateRange.new(:from => week, :format => :fixed_point).to_sql.should == "((year=2010 and week=52) or (year=2011 and week=-1))"
+      end
+
+      it "should support from, fixed_point, first week of year" do
+        week = EntryDate.new(:year => 2011, :month => 1, :day => 1, :week => -1)
+        DateRange.new(:from => week, :format => :fixed_point).to_sql.should == "((year=2010 and week=52) or (year=2011 and week=-1))"
+      end
+
       it "should support to, inclusive" do
         DateRange.new(:to => @date1, :format => :inclusive).to_sql.should == "occurred_at <= '2010-10-31 23:59:59'"
       end

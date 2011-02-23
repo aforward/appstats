@@ -45,13 +45,23 @@ module Appstats
           when :exclusive then 
             "occurred_at > '#{from_date_to_s}'"
           when :fixed_point then 
-            answer = "("
-            [:year,:month,:day,:hour,:min,:sec].each do |t|
-              next if from.send(t).nil?
-              answer += " and " unless answer.size == 1
-              answer += "#{t}=#{from.send(t)}"
+            if !@from.quarter.nil? 
+              answer = "(year=#{@from.year} and quarter=#{@from.quarter})"
+            elsif !@from.week.nil? && @from.week == -1
+              answer = "((year=#{@from.year - 1} and week=#{EntryDate.calculate_week_of(@from.to_time.beginning_of_week)}) or (year=#{@from.year} and week=#{@from.week}))"
+            elsif !@from.week.nil? && @from.to_time.end_of_week.year != @from.year
+              answer = "((year=#{@from.year} and week=#{@from.week}) or (year=#{@from.year+1} and week=-1))"
+            elsif !@from.week.nil?
+              answer = "(year=#{@from.year} and week=#{@from.week})"
+            else
+              answer = "("
+              [:year,:month,:day,:hour,:min,:sec].each do |t|
+                next if @from.send(t).nil?
+                answer += " and " unless answer.size == 1
+                answer += "#{t}=#{from.send(t)}"
+              end
+              answer += ")"
             end
-            answer += ")"
             answer 
         end
       elsif @from.nil? && !@to.nil?
