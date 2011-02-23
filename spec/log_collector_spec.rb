@@ -324,7 +324,7 @@ module Appstats
       it "should ignored non processed files" do
         log = LogCollector.create(:status => "blah")
         Appstats.should_receive(:log).with(:info,"No remote logs to remove.")
-        Appstats::LogCollector.remove_remote_files(@login).should == 0
+        Appstats::LogCollector.remove_remote_files(@logins).should == 0
       end
 
       it "should log all transactions" do
@@ -342,7 +342,7 @@ module Appstats
         Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/__processed__mystats_2011-01-03.log")
         Appstats.should_receive(:log).with(:info, "Removed 2 remote file(s).")
 
-        Appstats::LogCollector.remove_remote_files(@login).should == 2
+        Appstats::LogCollector.remove_remote_files(@logins).should == 2
         log1.reload and log2.reload
         log1.status.should == "destroyed"
         log2.status.should == "destroyed"

@@ -69,10 +69,7 @@ module Appstats
         return 0
       end
 
-      normalized_logins = {}
-      raw_logins.each do |login|
-        normalized_logins[login[:host]] = login
-      end
+      normalized_logins = normalize_logins(raw_logins)
       count = 0
       
       Appstats.log(:info,"About to download #{all.size} file(s).")
@@ -134,19 +131,25 @@ module Appstats
       count
     end
 
-    def self.remove_remote_files(remote_login)
+    def self.remove_remote_files(raw_logins)
       all = LogCollector.where("status = 'processed'").all
       if all.empty?
         Appstats.log(:info,"No remote logs to remove.")
         return 0
       end
       
+      normalized_logins = normalize_logins(raw_logins)
+      
       count = 0
       Appstats.log(:info,"About to remove #{all.size} remote file(s) from the processing queue.")
       all.each do |log_collector|
-        Net::SSH.start(remote_login[:host], remote_login[:user], :password => remote_login[:password] ) do |ssh|
+        host = log_collector.host
+        user = normalized_logins[host][:user]
+        password = normalized_logins[host][:password]
+
+        Net::SSH.start(host, user, :password => password ) do |ssh|
          ssh.exec!("mv #{log_collector.filename} #{log_collector.processed_filename}")
-         Appstats.log(:info,"  - #{remote_login[:user]}@#{remote_login[:host]}:#{log_collector.processed_filename}")
+         Appstats.log(:info,"  - #{user}@#{host}:#{log_collector.processed_filename}")
          log_collector.status = "destroyed"
          log_collector.save
          count += 1
@@ -154,6 +157,14 @@ module Appstats
       end
       Appstats.log(:info,"Removed #{count} remote file(s).")
       count
+    end
+    
+    def self.normalize_logins(raw_logins)
+      normalized_logins = {}
+      raw_logins.each do |login|
+        normalized_logins[login[:host]] = login
+      end
+      normalized_logins
     end
   
   end
