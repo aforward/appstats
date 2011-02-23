@@ -72,6 +72,8 @@ module Appstats
         entry.hour.should == 10
         entry.min.should == 11
         entry.sec.should == 12
+        entry.week.should == 2
+        entry.quarter.should == 1 
         
         entry.occurred_at = Time.parse("2011-02-16 17:18:19")
         entry.year.should == 2011
@@ -80,6 +82,8 @@ module Appstats
         entry.hour.should == 17
         entry.min.should == 18
         entry.sec.should == 19
+        entry.week.should == 7
+        entry.quarter.should == 1 
         
         entry.occurred_at = nil
         entry.year.should == nil
@@ -88,7 +92,8 @@ module Appstats
         entry.hour.should == nil
         entry.min.should == nil
         entry.sec.should == nil
-        
+        entry.week.should == nil
+        entry.quarter.should == nil 
       end
       
     end
@@ -188,18 +193,18 @@ module Appstats
       end
       
       it "should understand an entry without contexts" do
-        entry = Entry.create_from_logger_string("0.11.7 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
+        entry = Entry.create_from_logger_string("0.12.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_search"
-        entry.raw_entry.should == "0.11.7 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
+        entry.raw_entry.should == "0.12.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
       end
       
       it "should understand contexts" do
-        entry = Entry.create_from_logger_string("0.11.7 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
+        entry = Entry.create_from_logger_string("0.12.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_filter"
-        entry.raw_entry.should == "0.11.7 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
+        entry.raw_entry.should == "0.12.0 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
         entry.contexts.size.should == 2
         entry.contexts[0].context_key = "app_name"

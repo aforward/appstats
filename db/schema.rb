@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110222215437) do
+ActiveRecord::Schema.define(:version => 20110223212232) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
@@ -63,6 +63,8 @@ ActiveRecord::Schema.define(:version => 20110222215437) do
     t.integer  "hour"
     t.integer  "min"
     t.integer  "sec"
+    t.integer  "week"
+    t.integer  "quarter"
   end
 
   add_index "appstats_entries", ["action"], :name => "index_appstats_entries_on_action"
@@ -70,6 +72,8 @@ ActiveRecord::Schema.define(:version => 20110222215437) do
   add_index "appstats_entries", ["year", "month", "day", "hour"], :name => "index_entries_by_hour"
   add_index "appstats_entries", ["year", "month", "day"], :name => "index_entries_by_day"
   add_index "appstats_entries", ["year", "month"], :name => "index_entries_by_month"
+  add_index "appstats_entries", ["year", "quarter"], :name => "index_entries_by_quarter"
+  add_index "appstats_entries", ["year", "week"], :name => "index_entries_by_week"
   add_index "appstats_entries", ["year"], :name => "index_entries_by_year"
 
   create_table "appstats_hosts", :force => true do |t|

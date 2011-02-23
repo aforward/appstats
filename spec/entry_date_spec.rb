@@ -11,26 +11,38 @@ module Appstats
     describe "#initialize" do
       
       it "should understand year, month, day, hour, min, sec" do
-        date = EntryDate.new(:year => 2010, :month => 1, :day => 2, :hour => 3, :min => 4, :sec => 5)
+        date = EntryDate.new(:year => 2010, :month => 1, :day => 2, :hour => 3, :min => 4, :sec => 5, :week => 6, :quarter => 7)
         date.year.should == 2010
         date.month.should == 1
         date.day.should == 2
         date.hour.should == 3
         date.min.should == 4
         date.sec.should == 5
+        date.week.should == 6
+        date.quarter.should == 7
       end
+  
+    end
+    
+    describe "#==" do
       
-      it "should understand equality" do
-        date = EntryDate.new(:year => 2010, :month => 1, :day => 2, :hour => 3, :min => 4, :sec => 5)
-        same_date = EntryDate.new(:year => 2010, :month => 1, :day => 2, :hour => 3, :min => 4, :sec => 5)
-        another_date = EntryDate.new(:year => 2011, :month => 1, :day => 2, :hour => 3, :min => 4, :sec => 5)
-        
+      it "should be equal on all attributes" do
+        date = EntryDate.new(:year => 2010, :month => 1, :day => 2, :hour => 3, :min => 4, :sec => 5, :week => 6, :quarter => 7)
+        same_date = EntryDate.new(:year => 2010, :month => 1, :day => 2, :hour => 3, :min => 4, :sec => 5, :week => 6, :quarter => 7)
         date.should == date
         date.should == same_date
-        date.should_not == another_date
       end
       
-      
+      it "should be not equal if diferent attributes" do
+        date = EntryDate.new(:year => 2010, :month => 1, :day => 2, :hour => 3, :min => 4, :sec => 5, :week => 6, :quarter => 7)
+        
+        [:year,:month,:day,:hour,:min,:sec,:week,:quarter].each do |attr|
+          different_date = EntryDate.new(:year => 2010, :month => 1, :day => 2, :hour => 3, :min => 4, :sec => 5, :week => 6, :quarter => 7)
+          different_date.send("#{attr}=",99)
+          different_date.should_not == date
+        end
+      end
+              
     end
     
     describe "#to_time" do
@@ -70,7 +82,7 @@ module Appstats
     describe "#end_of_week" do
       it "should return the same 'level' data points" do
         now = EntryDate.new(:year => 2010, :month => 1, :day => 5, :hour => 10) # tuesday
-        expected = EntryDate.new(:year => 2010, :month => 1, :day => 10, :hour => 10)
+        expected = EntryDate.new(:year => 2010, :month => 1, :day => 10, :hour => 10, :week => 1)
         now.end_of_week.should == expected
       end
     end
@@ -78,11 +90,112 @@ module Appstats
     describe "#end_of_quarter" do
       it "should return the same 'level' data points" do
         now = EntryDate.new(:year => 2010, :month => 1, :day => 5, :hour => 10)
-        expected = EntryDate.new(:year => 2010, :month => 3)
+        expected = EntryDate.new(:year => 2010, :month => 3, :quarter => 1)
         now.end_of_quarter.should == expected
       end
+
+      it "should return quarter" do
+        now = EntryDate.new(:year => 2010, :month => 1, :quarter => 1)
+        expected = EntryDate.new(:year => 2010, :month => 3, :quarter => 1)
+        now.end_of_quarter.should == expected
+      end
+
     end
 
+    describe "#calculate_quarter_of" do
+      
+      it "should handle nil" do
+        EntryDate.calculate_quarter_of(nil).should == nil
+      end
+      
+      it "should be 1 for jan/feb/mar" do
+        EntryDate.calculate_quarter_of(Time.parse("2011-01-01")).should == 1
+        EntryDate.calculate_quarter_of(Time.parse("2011-02-15")).should == 1
+        EntryDate.calculate_quarter_of(Time.parse("2011-03-31")).should == 1
+      end
+
+      it "should be 2 for apr/may/jun" do
+        EntryDate.calculate_quarter_of(Time.parse("2011-04-01")).should == 2
+        EntryDate.calculate_quarter_of(Time.parse("2011-05-15")).should == 2
+        EntryDate.calculate_quarter_of(Time.parse("2011-06-30")).should == 2
+      end
+
+      it "should be 3 for jul/aug/sep" do
+        EntryDate.calculate_quarter_of(Time.parse("2011-07-01")).should == 3
+        EntryDate.calculate_quarter_of(Time.parse("2011-08-15")).should == 3
+        EntryDate.calculate_quarter_of(Time.parse("2011-09-30")).should == 3
+      end
+
+      it "should be 4 for oct/nov/dec" do
+        EntryDate.calculate_quarter_of(Time.parse("2011-10-01")).should == 4
+        EntryDate.calculate_quarter_of(Time.parse("2011-11-15")).should == 4
+        EntryDate.calculate_quarter_of(Time.parse("2011-12-31")).should == 4
+      end
+      
+      
+    end
+
+    describe "#calculate_quarter_of" do
+      
+      it "should handle nil" do
+        EntryDate.calculate_quarter_of(nil).should == nil
+      end
+      
+      it "should be 1 for jan/feb/mar" do
+        EntryDate.calculate_quarter_of(Time.parse("2011-01-01")).should == 1
+        EntryDate.calculate_quarter_of(Time.parse("2011-02-15")).should == 1
+        EntryDate.calculate_quarter_of(Time.parse("2011-03-31")).should == 1
+      end
+
+      it "should be 2 for apr/may/jun" do
+        EntryDate.calculate_quarter_of(Time.parse("2011-04-01")).should == 2
+        EntryDate.calculate_quarter_of(Time.parse("2011-05-15")).should == 2
+        EntryDate.calculate_quarter_of(Time.parse("2011-06-30")).should == 2
+      end
+
+      it "should be 3 for jul/aug/sep" do
+        EntryDate.calculate_quarter_of(Time.parse("2011-07-01")).should == 3
+        EntryDate.calculate_quarter_of(Time.parse("2011-08-15")).should == 3
+        EntryDate.calculate_quarter_of(Time.parse("2011-09-30")).should == 3
+      end
+
+      it "should be 4 for oct/nov/dec" do
+        EntryDate.calculate_quarter_of(Time.parse("2011-10-01")).should == 4
+        EntryDate.calculate_quarter_of(Time.parse("2011-11-15")).should == 4
+        EntryDate.calculate_quarter_of(Time.parse("2011-12-31")).should == 4
+      end
+      
+      
+    end
+
+    describe "#calculate_week_of" do
+      
+      it "should handle nil" do
+        EntryDate.calculate_week_of(nil).should == nil
+      end
+      
+      it "should be -1 if jan 1 is not start of week" do
+        EntryDate.calculate_week_of(Time.parse("2011-01-01")).should == -1
+        EntryDate.calculate_week_of(Time.parse("2011-01-02")).should == -1
+      end
+      
+      it "should be 1 for the first monday of the year" do
+        EntryDate.calculate_week_of(Time.parse("2011-01-03")).should == 1
+      end
+
+      it "should be 1 if the first day is on a monday" do
+        EntryDate.calculate_week_of(Time.parse("2018-01-01")).should == 1
+      end
+
+      it "should be X for the Xth monday of the year" do
+        time = Time.parse("2011-01-03")
+        1.upto(52).each do |offset|
+          EntryDate.calculate_week_of(time).should == offset
+          time = time.next_week
+        end
+      end
+      
+    end
 
     describe "#parse" do
 
@@ -128,7 +241,7 @@ module Appstats
       end
 
       it "should understand last quarter" do
-        EntryDate.parse("last quarter").should == EntryDate.new(:year => 2009, :month => 10)
+        EntryDate.parse("last quarter").should == EntryDate.new(:year => 2009, :month => 10, :quarter => 4)
       end
 
       it "should understand last month" do
@@ -136,7 +249,7 @@ module Appstats
       end
 
       it "should understand last week" do
-        EntryDate.parse("last week").should == EntryDate.new(:year => 2010, :month => 1, :day => 4)
+        EntryDate.parse("last week").should == EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1)
       end
 
       it "should understand last day" do
@@ -148,7 +261,7 @@ module Appstats
       end
 
       it "should understand previous quarter" do
-        EntryDate.parse("previous quarter").should == EntryDate.new(:year => 2009, :month => 10)
+        EntryDate.parse("previous quarter").should == EntryDate.new(:year => 2009, :month => 10, :quarter => 4)
       end
 
       it "should understand previous month" do
@@ -156,7 +269,7 @@ module Appstats
       end
 
       it "should understand previous week" do
-        EntryDate.parse("previous week").should == EntryDate.new(:year => 2010, :month => 1, :day => 4)
+        EntryDate.parse("previous week").should == EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1)
       end
 
       it "should understand previous day" do
@@ -168,7 +281,7 @@ module Appstats
       end
 
       it "should understand this quarter" do
-        EntryDate.parse("this quarter").should == EntryDate.new(:year => 2010, :month => 1)
+        EntryDate.parse("this quarter").should == EntryDate.new(:year => 2010, :month => 1, :quarter => 1)
       end
 
       it "should understand this month" do
@@ -176,7 +289,7 @@ module Appstats
       end
 
       it "should understand this week" do
-        EntryDate.parse("this week").should == EntryDate.new(:year => 2010, :month => 1, :day => 11)
+        EntryDate.parse("this week").should == EntryDate.new(:year => 2010, :month => 1, :day => 11, :week => 2)
       end
 
       it "should understand this day" do
@@ -190,9 +303,9 @@ module Appstats
       end
 
       it "should understand last X quarters" do
-        EntryDate.parse("last 1 quarter").should == EntryDate.new(:year => 2010, :month => 1)
-        EntryDate.parse("last 2 quarters").should == EntryDate.new(:year => 2009, :month => 10)
-        EntryDate.parse("last 3 quarters").should == EntryDate.new(:year => 2009, :month => 7)
+        EntryDate.parse("last 1 quarter").should == EntryDate.new(:year => 2010, :month => 1, :quarter => 1 )
+        EntryDate.parse("last 2 quarters").should == EntryDate.new(:year => 2009, :month => 10, :quarter => 4)
+        EntryDate.parse("last 3 quarters").should == EntryDate.new(:year => 2009, :month => 7, :quarter => 3)
       end
 
 
@@ -203,9 +316,9 @@ module Appstats
       end
 
       it "should understand last X weeks" do
-        EntryDate.parse("last 1 week").should == EntryDate.new(:year => 2010, :month => 1, :day => 11)
-        EntryDate.parse("last 2 weeks").should == EntryDate.new(:year => 2010, :month => 1, :day => 4)
-        EntryDate.parse("last 3 weeks").should == EntryDate.new(:year => 2009, :month => 12, :day => 28)
+        EntryDate.parse("last 1 week").should == EntryDate.new(:year => 2010, :month => 1, :day => 11, :week => 2)
+        EntryDate.parse("last 2 weeks").should == EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1)
+        EntryDate.parse("last 3 weeks").should == EntryDate.new(:year => 2009, :month => 12, :day => 28, :week => 52)
       end
 
       it "should understand last X days" do
@@ -221,9 +334,9 @@ module Appstats
       end
 
       it "should understand previous X quarters" do
-        EntryDate.parse("previous 1 quarter").should == EntryDate.new(:year => 2009, :month => 10)
-        EntryDate.parse("previous 2 quarters").should == EntryDate.new(:year => 2009, :month => 7)
-        EntryDate.parse("previous 3 quarters").should == EntryDate.new(:year => 2009, :month => 4)
+        EntryDate.parse("previous 1 quarter").should == EntryDate.new(:year => 2009, :month => 10, :quarter => 4)
+        EntryDate.parse("previous 2 quarters").should == EntryDate.new(:year => 2009, :month => 7, :quarter => 3)
+        EntryDate.parse("previous 3 quarters").should == EntryDate.new(:year => 2009, :month => 4, :quarter => 2)
       end
 
       it "should understand previous X months" do
@@ -233,9 +346,9 @@ module Appstats
       end
 
       it "should understand previous X weeks" do
-        EntryDate.parse("previous 1 week").should == EntryDate.new(:year => 2010, :month => 1, :day => 4)
-        EntryDate.parse("previous 2 weeks").should == EntryDate.new(:year => 2009, :month => 12, :day => 28)
-        EntryDate.parse("previous 3 weeks").should == EntryDate.new(:year => 2009, :month => 12, :day => 21)
+        EntryDate.parse("previous 1 week").should == EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1)
+        EntryDate.parse("previous 2 weeks").should == EntryDate.new(:year => 2009, :month => 12, :day => 28, :week => 52)
+        EntryDate.parse("previous 3 weeks").should == EntryDate.new(:year => 2009, :month => 12, :day => 21, :week => 51)
       end
 
       it "should understand previous X days" do

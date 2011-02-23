@@ -19,6 +19,8 @@ module Appstats
         self[:hour] = nil
         self[:min] = nil
         self[:sec] = nil
+        self[:week] = nil
+        self[:quarter] = nil
       else
         self[:year] = value.year
         self[:month] = value.month
@@ -26,6 +28,8 @@ module Appstats
         self[:hour] = value.hour
         self[:min] = value.min
         self[:sec] = value.sec
+        self[:week] = EntryDate.calculate_week_of(value)
+        self[:quarter] = EntryDate.calculate_quarter_of(value)
       end
     end
   

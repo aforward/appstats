@@ -32,6 +32,7 @@ module Appstats
         date_range.should == same_date_range
         date_range.should_not == another_date_range
       end
+      
     end
     
     describe "#parse" do
@@ -89,7 +90,7 @@ module Appstats
         end
 
         it "should understand this quarter" do
-          DateRange.parse("  this quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1), :to => nil, :format => :inclusive )
+          DateRange.parse("  this quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :quarter => 1), :to => nil, :format => :fixed_point )
         end
 
         it "should understand this month" do
@@ -97,7 +98,7 @@ module Appstats
         end
 
         it "should understand this week" do
-          DateRange.parse("  this week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 11), :to => nil, :format => :inclusive )
+          DateRange.parse("  this week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 11, :week => 2), :to => nil, :format => :fixed_point )
         end
 
         it "should understand this day" do
@@ -113,7 +114,7 @@ module Appstats
         end
 
         it "should understand last quarter" do
-          DateRange.parse("  last quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => EntryDate.new(:year => 2009, :month => 12), :format => :inclusive )
+          DateRange.parse("  last quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :quarter => 4), :to => nil, :format => :fixed_point )
         end
 
         it "should understand last month" do
@@ -121,7 +122,7 @@ module Appstats
         end
 
         it "should understand last week" do
-          DateRange.parse("  last week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 4), :to => EntryDate.new(:year => 2010, :month => 1, :day => 10), :format => :inclusive )
+          DateRange.parse("  last week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1), :to => nil, :format => :fixed_point )
         end
 
         it "should understand last day" do
@@ -137,7 +138,7 @@ module Appstats
         end
 
         it "should understand previous week" do
-          DateRange.parse("  previous week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 4), :to => EntryDate.new(:year => 2010, :month => 1, :day => 10), :format => :inclusive )
+          DateRange.parse("  previous week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1), :to => nil, :format => :fixed_point )
         end
 
         it "should understand previous day" do
@@ -155,9 +156,9 @@ module Appstats
         end
 
         it "should understand last X quarters" do
-          DateRange.parse("  last 1 quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1), :to => nil, :format => :inclusive )
-          DateRange.parse("  last 2 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => nil, :format => :inclusive )
-          DateRange.parse("  last 3 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 7), :to => nil, :format => :inclusive )
+          DateRange.parse("  last 1 quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :quarter => 1), :to => nil, :format => :inclusive )
+          DateRange.parse("  last 2 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :quarter => 4), :to => nil, :format => :inclusive )
+          DateRange.parse("  last 3 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 7, :quarter => 3), :to => nil, :format => :inclusive )
         end
 
         it "should understand last X months" do
@@ -167,9 +168,9 @@ module Appstats
         end
 
         it "should understand last X weeks" do
-          DateRange.parse("  last 1 week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 11), :to => nil, :format => :inclusive )
-          DateRange.parse("  last 2 weeks  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 4), :to => nil, :format => :inclusive )
-          DateRange.parse("  last 3 weeks  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 12, :day => 28), :to => nil, :format => :inclusive )
+          DateRange.parse("  last 1 week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 11, :week => 2), :to => nil, :format => :inclusive )
+          DateRange.parse("  last 2 weeks  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1), :to => nil, :format => :inclusive )
+          DateRange.parse("  last 3 weeks  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 12, :day => 28, :week => 52), :to => nil, :format => :inclusive )
         end
 
         it "should understand last X days" do
@@ -189,9 +190,9 @@ module Appstats
         end
 
         it "should understand previous Y quarters" do
-          DateRange.parse("  previous 1 quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => EntryDate.new(:year => 2009, :month => 12), :format => :inclusive )
-          DateRange.parse("  previous 2 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 7), :to => EntryDate.new(:year => 2009, :month => 12), :format => :inclusive )
-          DateRange.parse("  previous 3 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 4), :to => EntryDate.new(:year => 2009, :month => 12), :format => :inclusive )
+          DateRange.parse("  previous 1 quarter  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :quarter => 4), :to => EntryDate.new(:year => 2009, :month => 12, :quarter => 4), :format => :inclusive )
+          DateRange.parse("  previous 2 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 7, :quarter => 3), :to => EntryDate.new(:year => 2009, :month => 12, :quarter => 4), :format => :inclusive )
+          DateRange.parse("  previous 3 quarters  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 4, :quarter => 2), :to => EntryDate.new(:year => 2009, :month => 12, :quarter => 4), :format => :inclusive )
         end
 
         it "should understand previous Y months" do
@@ -201,9 +202,9 @@ module Appstats
         end
 
         it "should understand previous 2 weeks" do
-          DateRange.parse("  previous 1 week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 4), :to => EntryDate.new(:year => 2010, :month => 1, :day => 10), :format => :inclusive )
-          DateRange.parse("  previous 2 weeks  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 12, :day => 28), :to => EntryDate.new(:year => 2010, :month => 1, :day => 10), :format => :inclusive )
-          DateRange.parse("  previous 3 weeks  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 12, :day => 21), :to => EntryDate.new(:year => 2010, :month => 1, :day => 10), :format => :inclusive )
+          DateRange.parse("  previous 1 week  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1), :to => EntryDate.new(:year => 2010, :month => 1, :day => 10, :week => 1), :format => :inclusive )
+          DateRange.parse("  previous 2 weeks  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 12, :day => 28, :week => 52), :to => EntryDate.new(:year => 2010, :month => 1, :day => 10, :week => 1), :format => :inclusive )
+          DateRange.parse("  previous 3 weeks  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 12, :day => 21, :week => 51), :to => EntryDate.new(:year => 2010, :month => 1, :day => 10, :week => 1), :format => :inclusive )
         end
 
         it "should understand previous 2 days" do
@@ -266,6 +267,13 @@ module Appstats
         DateRange.new(:from => EntryDate.new(:year => 2009, :month => 2), :format => :exclusive).from_date.to_s.should == Time.parse("2009-02-28 23:59:59").to_s
         DateRange.new(:from => EntryDate.new(:year => 2009, :month => 2, :day => 15), :format => :exclusive).from_date.to_s.should == Time.parse("2009-02-15 23:59:59").to_s
       end
+
+      it "should handle fixed points" do
+        DateRange.new(:from => EntryDate.new(:year => 2009), :to => nil, :format => :fixed_point ).from_date.to_s.should == Time.parse("2009-01-01 00:00:00").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => nil, :format => :fixed_point ).from_date.to_s.should == Time.parse("2009-10-01 00:00:00").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :day => 3), :to => nil, :format => :fixed_point ).from_date.to_s.should == Time.parse("2009-10-03 00:00:00").to_s
+        DateRange.new(:from => nil, :to => nil, :format => :fixed_point ).from_date.should == nil
+      end
       
     end
 
@@ -284,6 +292,12 @@ module Appstats
         DateRange.new(:to => EntryDate.new(:year => 2009, :month => 2, :day => 15), :format => :inclusive).to_date.to_s.should == Time.parse("2009-02-15 23:59:59").to_s
       end
 
+      it "should handle fixed points" do
+        DateRange.new(:from => EntryDate.new(:year => 2009), :to => nil, :format => :fixed_point ).to_date.to_s.should == Time.parse("2009-12-31 23:59:59").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => nil, :format => :fixed_point ).to_date.to_s.should == Time.parse("2009-10-31 23:59:59").to_s
+        DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :day => 3), :to => nil, :format => :fixed_point ).to_date.to_s.should == Time.parse("2009-10-03 23:59:59").to_s
+        DateRange.new(:from => nil, :to => nil, :format => :fixed_point ).to_date.should == nil
+      end
 
     end    
     

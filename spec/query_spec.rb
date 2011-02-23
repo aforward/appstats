@@ -3,6 +3,10 @@ require 'spec_helper'
 module Appstats
   describe Query do
 
+    before(:each) do
+      Time.stub!(:now).and_return(Time.parse('2010-09-21 23:15:20'))
+    end
+
     describe "#initialize" do
       
       before(:each) do
@@ -106,6 +110,12 @@ module Appstats
     
         query = Appstats::Query.new(:query => "# myblahs where one=11 || two=22")
         query.run.count.should == 2
+      end
+    
+      it "should hard code fixed_points" do
+        query = Appstats::Query.new(:query => "# myblahs last month")
+        result = query.run
+        result.date_to_s.should == "2010-08-01 to 2010-08-31"
       end
     
     end

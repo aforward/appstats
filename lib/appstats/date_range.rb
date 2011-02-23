@@ -12,11 +12,14 @@ module Appstats
     
     def from_date
       return nil if @from.nil?
-      mode = @format == :inclusive ? :start : :end
+      mode = @format == :exclusive ? :end : :start
       @from.to_time(mode)
     end
     
     def to_date
+      if @format == :fixed_point && !@from.nil?
+        return @from.to_time(:end)
+      end
       return nil if @to.nil?
       mode = @format == :exclusive ? :start : :end
       @to.to_time(mode)
@@ -118,22 +121,14 @@ module Appstats
       m = input.match(/^this\s*(year|quarter|month|week|day)$/)
       unless m.nil?
         range.from = EntryDate.parse(input)
-        range.format = ["week","quarter"].include?(m[1]) ? :inclusive : :fixed_point
+        range.format = :fixed_point
         return range
       end
 
       m = input.match(/^(last|previous)\s*(year|quarter|month|week|day)$/)
       unless m.nil?
         range.from = EntryDate.parse(input)
-        if m[2] == "week"
-          range.to = range.from.end_of_week
-          range.format = :inclusive
-        elsif m[2] == "quarter"
-          range.to = range.from.end_of_quarter
-          range.format = :inclusive
-        else
-          range.format = :fixed_point  
-        end
+        range.format = :fixed_point
         return range
       end
 
