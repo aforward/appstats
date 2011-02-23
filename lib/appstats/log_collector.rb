@@ -28,8 +28,9 @@ module Appstats
       begin
         Appstats.log(:info,"Looking for logs in [#{remote_login[:user]}@#{remote_login[:host]}:#{path}] labelled [#{log_template}]")
         Net::SSH.start(remote_login[:host], remote_login[:user], :password => remote_login[:password] ) do |ssh|
-         all_files = ssh.exec!("cd #{path} && ls -tr | grep #{log_template} | grep -v __processed__").split
-         load_remote_files(remote_login,path,all_files)
+          raw_files = ssh.exec!("cd #{path} && ls -tr | grep #{log_template} | grep -v __processed__") 
+          all_files = raw_files.nil? ? [] : raw_files.split
+          load_remote_files(remote_login,path,all_files)
         end
       rescue Exception => e
         Appstats.log(:error,"Something bad occurred during Appstats::LogCollector#find_remote_files")

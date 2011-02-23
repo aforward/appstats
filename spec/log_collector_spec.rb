@@ -113,6 +113,18 @@ module Appstats
         LogCollector.find_remote_files(@login,"/my/path/log","mystats").should == 0
       end
       
+      it "should handle empty results" do
+        ssh = mock(Net::SSH)
+        Net::SSH.should_receive(:start).with("myhost.localnet","deployer",{ :password => "pass"}).and_yield(ssh)
+        ssh.should_receive(:exec!).with("cd /my/path/log && ls -tr | grep mystats | grep -v __processed__").and_return(nil)
+        Appstats.should_receive(:log).with(:info, "Looking for logs in [deployer@myhost.localnet:/my/path/log] labelled [mystats]")
+        Appstats.should_receive(:log).with(:info, "No remote logs to load.")
+
+        LogCollector.find_remote_files(@login,"/my/path/log","mystats").should == 0
+        LogCollector.count.should == @before_count
+
+      end
+      
     end
     
     describe "#load_remote_files" do
