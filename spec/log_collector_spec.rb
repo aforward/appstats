@@ -80,7 +80,7 @@ module Appstats
       it "should log all transactions" do
         ssh = mock(Net::SSH)
         Net::SSH.should_receive(:start).with("myhost.localnet","deployer",{ :password => "pass"}).and_yield(ssh)
-        ssh.should_receive(:exec!).with("cd /my/path/log && ls -tr | grep mystats").and_return("mystats_2010-01-01.log\nmystats_2010-01-02.log\nmystats_2010-01-03.log")
+        ssh.should_receive(:exec!).with("cd /my/path/log && ls -tr | grep mystats | grep -v __processed__").and_return("mystats_2010-01-01.log\nmystats_2010-01-02.log\nmystats_2010-01-03.log")
 
         Appstats.should_receive(:log).with(:info, "Looking for logs in [deployer@myhost.localnet:/my/path/log] labelled [mystats]")
         Appstats.should_receive(:log).with(:info, "About to analyze 3 file(s).")
@@ -94,7 +94,7 @@ module Appstats
       it "should talk to remote server" do
         ssh = mock(Net::SSH)
         Net::SSH.should_receive(:start).with("myhost.localnet","deployer",{ :password => "pass"}).and_yield(ssh)
-        ssh.should_receive(:exec!).with("cd /my/path/log && ls -tr | grep mystats").and_return("mystats_2010-01-01.log\nmystats_2010-01-02.log")
+        ssh.should_receive(:exec!).with("cd /my/path/log && ls -tr | grep mystats | grep -v __processed__").and_return("mystats_2010-01-01.log\nmystats_2010-01-02.log")
         
         LogCollector.find_remote_files(@login,"/my/path/log","mystats").should == 2
         LogCollector.count.should == @before_count + 2
