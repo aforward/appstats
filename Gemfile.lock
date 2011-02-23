@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    appstats (0.11.6)
+    appstats (0.11.7)
       daemons
       net-scp
       rails (>= 2.3.0)

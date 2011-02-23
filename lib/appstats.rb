@@ -27,7 +27,7 @@ end
 module Appstats
 
   def self.log(type,raw_message)
-    message = "VERSION #{Appstats::VERSION} : #{message}"
+    message = "VERSION #{Appstats::VERSION} : #{raw_message}"
     if $logger.nil?
       # puts "LOCAL LOG #{type}: #{message}"
     else
