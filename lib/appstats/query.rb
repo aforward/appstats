@@ -7,9 +7,11 @@ module Appstats
 
     @@nill_query = "select 0 from appstats_entries LIMIT 1"
     @@default = "1=1"
-    attr_accessor :query, :action, :host, :date_range, :query_to_sql, :contexts
+    attr_accessor :name, :query, :action, :host, :date_range, :query_to_sql, :contexts
 
     def initialize(data = {})
+      @name = data[:name]
+      @result_type = data[:result_type] || "on_demand"
       self.query=(data[:query])
     end
     
@@ -19,7 +21,7 @@ module Appstats
     end
     
     def run
-      result = Appstats::Result.new(:result_type => :on_demand, :query => @query, :query_as_sql => @query_to_sql, :action => @action, :host => @host, :from_date => @date_range.from_date, :to_date => @date_range.to_date, :contexts => @contexts)
+      result = Appstats::Result.new(:name => @name, :result_type => @result_type, :query => @query, :query_as_sql => @query_to_sql, :action => @action, :host => @host, :from_date => @date_range.from_date, :to_date => @date_range.to_date, :contexts => @contexts)
       result.count = ActiveRecord::Base.connection.select_one(@query_to_sql)["count(*)"].to_i
       result.save
       result

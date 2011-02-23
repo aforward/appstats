@@ -45,6 +45,8 @@ while($running) do
   end
   Appstats::LogCollector.download_remote_files(appstats_config["remote_servers"])
   Appstats::LogCollector.process_local_files
+  Appstats::ResultJob.run
+
   Appstats::Action.update_actions
   Appstats::Host.update_hosts
   Appstats::ContextKey.update_context_keys

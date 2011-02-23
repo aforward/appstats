@@ -256,5 +256,78 @@ module Appstats
 
     end
     
+    describe "#run" do
+      
+      before(:each) do
+        Appstats::ResultJob.delete_all
+        Appstats::Result.delete_all
+        Appstats::Entry.delete_all
+      end
+      
+      it "nothing to do" do
+        Appstats::ResultJob.run.should == 0
+      end
+
+      it "should update job" do
+        job1 = Appstats::ResultJob.create(:query => "# blahs", :frequency => "once")
+        Appstats::ResultJob.run.should == 1
+        
+        job1.reload
+        job1.last_run_at.to_s.should == @tuesday.to_s
+      end
+      
+      it "should log when no queries" do
+        Appstats.should_receive(:log).with(:info, "No result jobs to run.")
+        Appstats::ResultJob.run.should == 0
+      end      
+
+      it "should ignore 'once' with a last_run_at date" do
+        job1 = Appstats::ResultJob.create(:name => "x", :query => "# blahs", :frequency => "once", :last_run_at => Time.now)
+        Appstats.should_receive(:log).with(:info, "No result jobs to run.")
+        Appstats::ResultJob.run.should == 0
+      end      
+      
+      it "should log which queries are run" do
+        job1 = Appstats::ResultJob.create(:name => "x", :query => "# blahs", :frequency => "weekly", :last_run_at => Time.now)
+        job2 = Appstats::ResultJob.create(:name => "y", :query => "# blahs where type=1", :frequency => "daily")
+
+        Appstats.should_receive(:log).with(:info, "About to analyze 2 result job(s).")
+        Appstats.should_receive(:log).with(:info, "  - Job x NOT run [ID #{job1.id}, FREQUENCY weekly, QUERY # blahs]")
+        Appstats.should_receive(:log).with(:info, "  - Job y run [ID #{job2.id}, FREQUENCY daily, QUERY # blahs where type=1]")
+        Appstats.should_receive(:log).with(:info, "Ran 1 query(ies).")
+        
+        Appstats::ResultJob.run.should == 1
+      end
+      
+      it "should filter out 'once' with a date" do
+        
+      end
+      
+      it "should create results" do
+        job1 = Appstats::ResultJob.create(:name => "x", :query => "# blahs", :frequency => "once")
+        job2 = Appstats::ResultJob.create(:name => "y", :query => "# blahs where type=1", :frequency => "once")
+        Appstats::Entry.create_from_logger("blahs", :type => "2")
+        Appstats::Entry.create_from_logger("blahs", :type => "1")
+        
+        Appstats::ResultJob.run.should == 2
+        
+        all = Appstats::Result.all
+        all.count.should == 2
+
+        all[0].name.should == "x"
+        all[1].name.should == "y"
+
+        all[0].query.should == "# blahs"
+        all[1].query.should == "# blahs where type=1"
+
+        all[0].result_type.should == "result_job"
+        all[1].result_type.should == "result_job"
+
+        all[0].count.should == 2
+        all[1].count.should == 1
+      end
+      
+    end
+    
   end
 end

@@ -19,6 +19,30 @@ module Appstats
     end
     alias_method :eql?, :==
 
+    def self.run
+      count = 0
+      all = ResultJob.where("frequency <> 'once' or last_run_at IS NULL").all
+      if all.size == 0
+        Appstats.log(:info, "No result jobs to run.")
+        return count
+      end
+      Appstats.log(:info, "About to analyze #{all.size} result job(s).")
+      all.each do |job|
+        if job.should_run
+          Appstats.log(:info, "  - Job #{job.name} run [ID #{job.id}, FREQUENCY #{job.frequency}, QUERY #{job.query}]")
+          query = Appstats::Query.new(:name => job.name, :result_type => "result_job", :query => job.query)
+          query.run
+          job.last_run_at = Time.now
+          job.save
+          count += 1
+        else
+          Appstats.log(:info, "  - Job #{job.name} NOT run [ID #{job.id}, FREQUENCY #{job.frequency}, QUERY #{job.query}]")
+        end
+      end
+      Appstats.log(:info, "Ran #{count} query(ies).")
+      count
+    end
+
     private
 
       def state
