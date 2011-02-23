@@ -250,7 +250,7 @@ module Appstats
       it "should handle both sides" do
         Parser.merge_regex_filter(['\s','a|b']).should == '(\s|a|b)'
       end
-
+    
       it "should handle three inputs" do
         Parser.merge_regex_filter(['\s','a|b','dd']).should == '(\s|a|b|dd)'
         Parser.merge_regex_filter(['\s','',nil]).should == '(\s)'
@@ -349,17 +349,23 @@ module Appstats
         end
         
         it "should handle last week" do
-
+    
           parser = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
           parser.parse("# logins last week where service_provider = Cox Communications").should == true
           parser.results.should == {:operation => "#", :action => "logins", :date => "last week", :host => nil, :contexts => "service_provider = Cox Communications" }
-
+    
         end
         
         it "should handle lots of brackets" do
           parser = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "and or || && = <= >= <> != ( ) like")
           parser.parse("(a=b and c=4) or (aaa=5)").should == true
           parser.raw_results.should == ["(", {:context=>"a"}, "=", {:context=>"b"}, "and", {:context=>"c"}, "=", {:context=>"4"}, ")", "or", "(", {:context=>"aaa"}, "=", {:context=>"5"}, ")"]
+        end
+        
+        it "should not get stuck with on within a word" do
+          parser = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
+          parser.parse("# buyer-address-lookup last month").should == true
+          parser.raw_results.should == [{:operation=>"#"}, {:action=>"buyer-address-lookup"}, {:host=>nil}, {:contexts=>nil}, {:date=>"last month"}]
         end
         
       end

@@ -40,7 +40,7 @@ module Appstats
         if rule.kind_of?(Hash)
           if rule[:stop] == :constant
             was_found = false
-            @remaining_constants_no_spaces.each_with_index do |k,index|
+            @remaining_constants.each_with_index do |k,index|
               p = parse_word(@text_so_far,k,true)
               if p[0].nil?
                 unset_rules_until(k)
