@@ -6,6 +6,7 @@ module Appstats
     set_table_name "appstats_log_collectors"
   
     attr_accessible :host, :filename, :status
+    has_many :entries, :table_name => 'appstats_entries', :foreign_key => 'appstats_log_collector_id', :order => 'action'
 
     def local_filename
       File.expand_path("#{File.dirname(__FILE__)}/../../log/appstats_remote_log_#{id}.log")
@@ -17,6 +18,16 @@ module Appstats
       prefix = "__processed__"
       return "#{prefix}#{filename}" if m.nil?
       "#{m[1]}#{prefix}#{m[2]}"
+    end
+
+    def unprocess_entries
+      return false unless ["processed","destroyed"].include?(status)
+      entries.each do |entry|
+        entry.destroy
+      end
+      status = "downloaded"
+      save
+      true
     end
 
     def self.should_process(last_time)

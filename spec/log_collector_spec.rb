@@ -380,6 +380,79 @@ module Appstats
       end
     end
     
+    describe "#entries" do
+      
+      it "should return 0 for new log_collectors" do
+        @log_collector.entries.empty?.should == true
+      end
+      
+      it "should return entries" do
+        @log_collector.status = "processed"
+        entry = Entry.new
+        entry.log_collector = @log_collector
+        entry.save
+
+        @log_collector.reload
+        @log_collector.entries.size.should == 1
+
+        entry = Entry.new
+        entry.log_collector = @log_collector
+        entry.save
+
+        @log_collector.reload
+        @log_collector.entries.size.should == 2
+      end
+      
+    end
+    
+    describe "#unprocess_entries" do
+      
+      before(:each) do
+        @log_collector.save.should == true
+      end
+      
+      it "should ignore if not processed or destroyed" do
+        @log_collector.status = "blah"
+        @log_collector.unprocess_entries.should == false
+      end
+      
+      it "should reset status back to downloaded" do
+        @log_collector.status = "processed"
+        @log_collector.unprocess_entries.should == true
+        @log_collector.reload
+        @log_collector.status = "downloaded"
+      end
+
+      it "should delete all entries" do
+        @log_collector.status = "processed"
+        entry = Entry.new
+        entry.log_collector = @log_collector
+        entry.save
+        entry_id = entry.id
+        
+        @log_collector.unprocess_entries.should == true
+        @log_collector.reload
+        Entry.exists?(entry_id).should == false
+      end
+
+      it "should delete all contexts" do
+        @log_collector.status = "processed"
+        entry = Entry.new
+        entry.log_collector = @log_collector
+        entry.save
+        
+        context = Context.new
+        context.entry = entry
+        context.save
+        context_id = context.id
+        
+        @log_collector.unprocess_entries.should == true
+        @log_collector.reload
+        Context.exists?(context_id).should == false
+      end
+      
+    end
+    
     
   end
 end
