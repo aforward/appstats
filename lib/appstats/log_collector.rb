@@ -4,7 +4,9 @@ require 'net/scp'
 module Appstats
   class LogCollector < ActiveRecord::Base
     set_table_name "appstats_log_collectors"
-  
+    
+    @@downloaded_log_directory = nil
+    
     attr_accessible :host, :filename, :status, :local_filename
     has_many :entries, :table_name => 'appstats_entries', :foreign_key => 'appstats_log_collector_id', :order => 'action'
 
