@@ -171,6 +171,12 @@ module Appstats
       Appstats.log(:info,"About to remove #{all.size} remote file(s) from the processing queue.")
       all.each do |log_collector|
         host = log_collector.host
+        
+        if normalized_logins[host].nil?
+          Appstats.log(:info,"  - Missing host login details [#{host}], unable to remove #{log_collector.processed_filename}")
+          next
+        end
+        
         user = normalized_logins[host][:user]
         password = normalized_logins[host][:password]
 

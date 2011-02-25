@@ -12,6 +12,7 @@ module Appstats
       @login = { :host => "myhost.localnet", :user => "deployer", :password => "pass" }
       @login2 = { :host => "yourhost.localnet", :user => "deployer", :password => "ssap" }
       @logins = [@login2, @login]
+      @missing_logins = [@login]
       Appstats::LogCollector.downloaded_log_directory = nil
     end
     
@@ -363,6 +364,23 @@ module Appstats
         Appstats::LogCollector.remove_remote_files(@logins).should == 0
       end
 
+      it "should log unknown hosts" do
+        log1 = LogCollector.create(:status => "processed", :filename => "/my/path/log/mystats_2011-01-02.log", :host => "myhost.localnet")
+        log2 = LogCollector.create(:status => "processed", :filename => "/my/path/log/mystats_2011-01-03.log", :host => "yourhost.localnet")
+
+        ssh = mock(Net::SSH)
+        Net::SSH.should_receive(:start).with("myhost.localnet","deployer",{ :password => "pass"}).and_yield(ssh)
+        ssh.should_receive(:exec!).with("mv /my/path/log/mystats_2011-01-02.log /my/path/log/__processed__mystats_2011-01-02.log")
+
+        Appstats.should_receive(:log).with(:info, "About to remove 2 remote file(s) from the processing queue.")
+        Appstats.should_receive(:log).with(:info, "  - deployer@myhost.localnet:/my/path/log/__processed__mystats_2011-01-02.log")
+        Appstats.should_receive(:log).with(:info, "  - Missing host login details [yourhost.localnet], unable to remove /my/path/log/__processed__mystats_2011-01-03.log")
+        Appstats.should_receive(:log).with(:info, "Removed 1 remote file(s).")
+
+        Appstats::LogCollector.remove_remote_files(@missing_logins).should == 1
+
+      end
+      
       it "should log all transactions" do
         
         log1 = LogCollector.create(:status => "processed", :filename => "/my/path/log/mystats_2011-01-02.log", :host => "myhost.localnet")
