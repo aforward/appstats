@@ -50,14 +50,25 @@ module Appstats
       return hash if action_and_contexts.nil?
       setup = action_and_contexts.match(/(.*?) setup\[(.*?),(.*?),(.*?)\] (.*? .*?) (.*)/)
       return hash if setup.nil?
+      hash.delete(:action)
       hash.delete(:raw_input)
       full, version, section_delimiter, assign_delimiter, newline_delimiter, timestamp, input = setup.to_a
       
       hash[:timestamp] = timestamp
       input.split(section_delimiter).each do |pair|
         key,value = pair.strip.split(assign_delimiter)
-        hash[key.to_sym] = value
+        key_symbol = key.to_sym
+        if hash[key_symbol].nil?
+          hash[key.to_sym] = value  
+        elsif hash[key_symbol].kind_of?(String)
+          hash[key.to_sym] = [ hash[key_symbol], value ]
+        else
+          all_values = hash[key_symbol]
+          all_values<< value
+          hash[key.to_sym] = all_values
+        end
       end
+      hash[:action] = "UNKNOWN_ACTION" if hash[:action].nil?
       hash
     end
     
