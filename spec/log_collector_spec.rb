@@ -417,10 +417,12 @@ module Appstats
       end
       
       it "should reset status back to downloaded" do
-        @log_collector.status = "processed"
-        @log_collector.unprocess_entries.should == true
-        @log_collector.reload
-        @log_collector.status = "downloaded"
+        ["processed","destroyed"].each do |old_status|
+          @log_collector.status = old_status
+          @log_collector.unprocess_entries.should == true
+          @log_collector.reload
+          @log_collector.status.should == "downloaded"
+        end
       end
 
       it "should delete all entries" do

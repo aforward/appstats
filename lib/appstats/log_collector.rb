@@ -25,7 +25,7 @@ module Appstats
       entries.each do |entry|
         entry.destroy
       end
-      status = "downloaded"
+      self.status = "downloaded"
       save
       true
     end
