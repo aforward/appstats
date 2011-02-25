@@ -5,11 +5,15 @@ module Appstats
   class LogCollector < ActiveRecord::Base
     set_table_name "appstats_log_collectors"
   
-    attr_accessible :host, :filename, :status
+    attr_accessible :host, :filename, :status, :local_filename
     has_many :entries, :table_name => 'appstats_entries', :foreign_key => 'appstats_log_collector_id', :order => 'action'
 
-    def local_filename
-      File.expand_path("#{File.dirname(__FILE__)}/../../log/appstats_remote_log_#{id}.log")
+    def calculated_local_filename
+      if Appstats::LogCollector.downloaded_log_directory.nil?
+        File.expand_path("#{File.dirname(__FILE__)}/../../log/appstats_remote_log_#{id}.log")
+      else
+        File.expand_path("#{Appstats::LogCollector.downloaded_log_directory}/appstats_remote_log_#{id}.log")
+      end
     end
 
     def processed_filename
@@ -28,6 +32,14 @@ module Appstats
       self.status = "downloaded"
       save
       true
+    end
+
+    def self.downloaded_log_directory=(value)
+      @@downloaded_log_directory = value
+    end
+
+    def self.downloaded_log_directory
+      @@downloaded_log_directory
     end
 
     def self.should_process(last_time)
@@ -91,18 +103,19 @@ module Appstats
         password = normalized_logins[host][:password]
         begin
           Net::SCP.start( host, user, :password => password ) do |scp|
-            scp.download!( log_collector.filename, log_collector.local_filename )
+            scp.download!( log_collector.filename, log_collector.calculated_local_filename )
           end
         rescue Exception => e
           Appstats.log(:error,"Something bad occurred during Appstats::LogCollector#download_remote_files")
           Appstats.log(:error,e.message)
         end
-        if File.exists?(log_collector.local_filename)
-          Appstats.log(:info,"  - #{user}@#{host}:#{log_collector.filename} > #{log_collector.local_filename}")
+        if File.exists?(log_collector.calculated_local_filename)
+          log_collector.local_filename = log_collector.calculated_local_filename
           log_collector.status = 'downloaded'
+          Appstats.log(:info,"  - #{user}@#{host}:#{log_collector.filename} > #{log_collector.local_filename}")
           count += 1  
         else
-          Appstats.log(:error, "File #{log_collector.local_filename} did not download.")
+          Appstats.log(:error, "File #{log_collector.calculated_local_filename} did not download.")
           log_collector.status = 'failed_download'
         end
         log_collector.save

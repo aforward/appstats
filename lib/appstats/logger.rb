@@ -20,7 +20,7 @@ module Appstats
       @@filename_template ||= 'appstats'
       @@filename_template
     end
-    
+
     def self.filename
       "#{filename_template}_#{today}.log"
     end

@@ -12,12 +12,14 @@ module Appstats
       @login = { :host => "myhost.localnet", :user => "deployer", :password => "pass" }
       @login2 = { :host => "yourhost.localnet", :user => "deployer", :password => "ssap" }
       @logins = [@login2, @login]
+      Appstats::LogCollector.downloaded_log_directory = nil
     end
     
     after(:each) do
       LogCollector.all.each do |log_collector|
-        File.delete(log_collector.local_filename) if File.exists?(log_collector.local_filename)
+        File.delete(log_collector.local_filename) if !log_collector.local_filename.nil? && File.exists?(log_collector.local_filename)
       end
+      Appstats::LogCollector.downloaded_log_directory = nil
     end
     
     def simple_path(local_path_to_filename)
@@ -37,14 +39,19 @@ module Appstats
       it "should set status to unprocessed" do
         @log_collector.status.should == nil
       end
+      
+      it "should set local_filename to nil" do
+        @log_collector.local_filename.should == nil
+      end
     
       it "should set on constructor" do
-        log_collector = Appstats::LogCollector.new(:host => 'a', :filename => 'b', :status => 'c')
+        log_collector = Appstats::LogCollector.new(:host => 'a', :filename => 'b', :status => 'c', :local_filename => 'd')
         log_collector.host.should == 'a'
         log_collector.filename.should == 'b'
         log_collector.status.should == 'c'
+        log_collector.local_filename.should == 'd'
       end
-    
+      
     end
     
     
@@ -182,11 +189,21 @@ module Appstats
       
     end
     
-    describe "#local_filename" do
+    describe "#calculated_local_filename" do
+      
+      before(:each) do
+        Appstats::LogCollector.downloaded_log_directory = nil
+      end
       
       it "should return a standardized name with the log collector id" do
         log = LogCollector.create
-        log.local_filename.should == simple_path("../log/appstats_remote_log_#{log.id}.log")
+        log.calculated_local_filename.should == simple_path("../log/appstats_remote_log_#{log.id}.log")
+      end
+      
+      it "should use the downloaded_log_directory if set" do
+        Appstats::LogCollector.downloaded_log_directory = "/a/b/c"
+        log = LogCollector.create
+        log.calculated_local_filename.should == "/a/b/c/appstats_remote_log_#{log.id}.log"
       end
       
     end
@@ -241,8 +258,8 @@ module Appstats
         log1 = LogCollector.find_by_filename("/my/path/log/app1")
         log2 = LogCollector.find_by_filename("/my/path/log/app2")
         
-        File.open(log1.local_filename, 'w') {|f| f.write("testfile - delete") }
-        File.open(log2.local_filename, 'w') {|f| f.write("testfile - delete") }
+        File.open(log1.calculated_local_filename, 'w') {|f| f.write("testfile - delete") }
+        File.open(log2.calculated_local_filename, 'w') {|f| f.write("testfile - delete") }
 
 
         scp = mock(Net::SCP)
@@ -255,12 +272,16 @@ module Appstats
         LogCollector.download_remote_files(@logins).should == 2
         
         log1.reload and log2.reload
+        
+        log1.local_filename.should == log1.calculated_local_filename
+        log2.local_filename.should == log2.calculated_local_filename
+        
         log1.status.should == "downloaded"
         log2.status.should == "downloaded"
         
         LogCollector.load_remote_files(@login,"/my/path/log",["app3"]).should == 1
         log3 = LogCollector.find_by_filename("/my/path/log/app3")
-        File.open(log3.local_filename, 'w') {|f| f.write("testfile - delete") }
+        File.open(log3.calculated_local_filename, 'w') {|f| f.write("testfile - delete") }
         
         localfile = simple_path("../log/appstats_remote_log_#{log3.id}.log")
         scp.should_receive(:download!).with("/my/path/log/app3",localfile)
@@ -291,6 +312,8 @@ module Appstats
         LogCollector.load_remote_files(@login,"/my/path/log",["appstats1"]).should == 1
         log3 = LogCollector.find_by_filename("/my/path/log/appstats1")
         log3.status = "downloaded" and log3.save.should == true
+        log3.local_filename = log3.calculated_local_filename
+        log3.save
         File.open(log3.local_filename, 'w') {|f| f.write(Appstats::Logger.entry_to_s("test_action1") + "\n" + Appstats::Logger.entry_to_s("test_action2")) }
 
         Appstats.should_receive(:log).with(:info,"About to process 1 file(s).")
@@ -310,6 +333,7 @@ module Appstats
         LogCollector.load_remote_files(@login,"/my/path/log",["appstats1"]).should == 1
         log3 = LogCollector.find_by_filename("/my/path/log/appstats1")
         log3.status = "downloaded" and log3.save.should == true
+        log3.local_filename = log3.calculated_local_filename
         File.open(log3.local_filename, 'w') {|f| f.write(Appstats::Logger.entry_to_s("test_action1") + "\n" + Appstats::Logger.entry_to_s("test_action2")) }
 
         File.stub!(:open).and_raise("bad error")

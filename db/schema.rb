@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110223212232) do
+ActiveRecord::Schema.define(:version => 20110225192624) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
@@ -89,6 +89,7 @@ ActiveRecord::Schema.define(:version => 20110223212232) do
     t.string   "status"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "local_filename"
   end
 
   add_index "appstats_log_collectors", ["host"], :name => "index_appstats_log_collectors_on_host"
