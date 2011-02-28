@@ -40,7 +40,10 @@ module Appstats
       answer = "#{Appstats::VERSION} setup[#{section_delimiter},#{assign_delimiter},#{newline_delimiter}] "
       answer += "#{now} action#{assign_delimiter}#{format_input(action,newline_delimiter)}"
       contexts.keys.sort.each do |key|
-        answer += " #{section_delimiter} #{key}#{assign_delimiter}#{format_input(contexts[key],newline_delimiter)}"
+        all_val = contexts[key].kind_of?(Array) ? contexts[key] : [contexts[key]]
+        all_val.each do |value|
+          answer += " #{section_delimiter} #{key}#{assign_delimiter}#{format_input(value,newline_delimiter)}"
+        end
       end
       answer
     end
