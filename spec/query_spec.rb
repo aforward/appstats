@@ -93,6 +93,20 @@ module Appstats
         Appstats::Entry.create(:action => "myblahs")
         query.run.count.should == 2
       end
+
+      it "should not double count an entry with multiple contexts" do
+        Appstats::Entry.create_from_logger("myblahs",:app_name => ["a","b"])
+        query = Appstats::Query.new(:query => "# myblahs where app_name='a' or app_name = 'b'")
+        query.run.count.should == 1
+
+        Appstats::Entry.create_from_logger("myblahs",:app_name => ["a","c"])
+        Appstats::Entry.create_from_logger("myblahs",:app_name => ["b","d"])
+        Appstats::Entry.create_from_logger("myblahs",:app_name => ["c","d"])
+        query = Appstats::Query.new(:query => "# myblahs where app_name='a' or app_name = 'b'")
+        query.run.count.should == 3
+
+      end
+
       
       it "should perform the action search" do
         Appstats::Entry.create_from_logger("myblahs", :one => "11", :two => "222")
