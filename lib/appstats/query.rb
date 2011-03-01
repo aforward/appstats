@@ -23,6 +23,10 @@ module Appstats
     
     def run
       result = Appstats::Result.new(:name => @name, :result_type => @result_type, :query => @query, :query_as_sql => @query_to_sql, :action => @action, :host => @host, :from_date => @date_range.from_date, :to_date => @date_range.to_date, :contexts => @contexts)
+      unless @group_by.empty?
+        result.group_by = @group_by.join(", ")
+        result.group_query_to_sql = @group_query_to_sql
+      end
       result.group_by = @group_by.join(", ") unless @group_by.empty?
       result.count = ActiveRecord::Base.connection.select_one(@query_to_sql)["count(*)"].to_i
       result.save

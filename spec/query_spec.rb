@@ -202,6 +202,7 @@ module Appstats
           result.count.should == 4
           result.group_by.should == "service_provider"
           result.sub_results.size.should == 2
+          result.group_query_to_sql.should == query.group_query_to_sql
           
           result.sub_results[0].should == SubResult.new(:context_filter => "a", :count => 3, :ratio_of_total => 0.75)
           result.sub_results[1].should == SubResult.new(:context_filter => "b", :count => 1, :ratio_of_total => 0.25)
