@@ -126,6 +126,30 @@ module Appstats
       end
       
     end
+
+    describe "#sub_results" do
+      
+      it "should be empty be default" do
+        @result.sub_results.should == []
+      end
+      
+      it "should order by count" do
+        @result = Result.create
+        sub1 = SubResult.create(:count => 10)
+        sub2 = SubResult.create(:count => 20)
+        sub3 = SubResult.create(:count => 30)
+
+        @result.sub_results<< sub1
+        @result.sub_results<< sub3
+        @result.sub_results<< sub2
+
+        @result.save.should == true
+        @result.reload
+
+        @result.sub_results.should == [sub3,sub2,sub1]
+      end
+      
+    end
     
   end
 end

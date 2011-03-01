@@ -3,6 +3,7 @@ module Appstats
     set_table_name "appstats_results"
 
     attr_accessible :name, :result_type, :query, :query_as_sql, :count, :action, :host, :from_date, :to_date, :contexts
+    has_many :sub_results, :table_name => 'appstats_subresults', :foreign_key => 'appstats_result_id', :order => 'count DESC'
 
     def date_to_s
       return "" if from_date.nil? && to_date.nil?

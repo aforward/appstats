@@ -2,12 +2,13 @@
 module Appstats
   class Query
 
-    @@parser_template = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts")
+    @@parser_template = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts group by :groups")
     @@contexts_parser_template = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "and or || && = <= >= <> != ( ) like")
+    @@groups_parser_template = Appstats::Parser.new(:rules => ":filter", :repeating => true, :tokenize => ",")
 
     @@nill_query = "select 0 from appstats_entries LIMIT 1"
     @@default = "1=1"
-    attr_accessor :name, :query, :action, :host, :date_range, :query_to_sql, :contexts
+    attr_accessor :name, :query, :action, :host, :date_range, :query_to_sql, :contexts, :groups, :group_query_to_sql
 
     def initialize(data = {})
       @name = data[:name]
@@ -24,6 +25,17 @@ module Appstats
       result = Appstats::Result.new(:name => @name, :result_type => @result_type, :query => @query, :query_as_sql => @query_to_sql, :action => @action, :host => @host, :from_date => @date_range.from_date, :to_date => @date_range.to_date, :contexts => @contexts)
       result.count = ActiveRecord::Base.connection.select_one(@query_to_sql)["count(*)"].to_i
       result.save
+      
+      unless @groups.empty?
+        all_sub_results = ActiveRecord::Base.connection.select_all(@group_query_to_sql)
+        all_sub_results.each do |data|
+          ratio_of_total = data["num"].to_f / result.count
+          sub_result = Appstats::SubResult.new(:context_filter => data["context_filter"], :count => data["num"], :ratio_of_total => ratio_of_total)
+          sub_result.result = result
+          sub_result.save
+        end
+      end
+      result.reload
       result
     end
     
@@ -101,6 +113,15 @@ module Appstats
         action.nil? ? action_name : action.name 
       end
       
+      def parse_groups(raw_input)
+        group_parser = @@groups_parser_template.dup
+        return if (raw_input.blank? || !group_parser.parse(raw_input))
+        group_parser.raw_results.each do |entry|
+          next if entry.kind_of?(String)
+          @groups<< entry[:filter]
+        end
+      end
+      
       def parse_query
         reset_query
         return nil_query if @query.nil?
@@ -114,6 +135,7 @@ module Appstats
         @date_range = DateRange.parse(parser.results[:date])
         @host = parser.results[:host]
         @contexts = parser.results[:contexts]
+        parse_groups(parser.results[:groups])
         
         if @operation == "#"
           @query_to_sql = "select count(*) from appstats_entries"
@@ -121,6 +143,12 @@ module Appstats
           @query_to_sql += " and #{@date_range.to_sql}" unless @date_range.to_sql == "1=1"
           @query_to_sql += " and #{Query.host_filter_to_sql(@host)}" unless @host.nil?
           @query_to_sql += " and #{Query.contexts_filter_to_sql(@contexts)}" unless @contexts.nil?
+        end
+
+        unless @groups.empty?
+          query_to_sql_with_id = @query_to_sql.sub("count(*)","id")
+          group_as_sql = @groups.collect { |g| "'#{Query.sqlclean(g)}'" }.join(',')
+          @group_query_to_sql = "select context_filter, count(*) num from (select group_concat(appstats_contexts.context_value separator ', ') as context_filter, appstats_entry_id from appstats_contexts where context_key in (#{group_as_sql}) and appstats_entry_id in ( #{query_to_sql_with_id} ) group by appstats_entry_id) results group by context_filter;"
         end
 
         @query_to_sql
@@ -138,6 +166,7 @@ module Appstats
       def nil_query
         @query_to_sql = @@nill_query
         @query_to_sql
+        @group_query_to_sql = nil
       end
       
       def reset_query
@@ -145,6 +174,7 @@ module Appstats
         @host = nil
         nil_query
         @date_range = DateRange.new
+        @groups = []
       end
     
   end

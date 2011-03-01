@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110225192624) do
+ActiveRecord::Schema.define(:version => 20110301170947) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
@@ -118,12 +118,24 @@ ActiveRecord::Schema.define(:version => 20110225192624) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.text     "contexts"
+    t.text     "group_query_to_sql"
   end
 
   add_index "appstats_results", ["action"], :name => "index_appstats_results_on_action"
   add_index "appstats_results", ["host"], :name => "index_appstats_results_on_host"
   add_index "appstats_results", ["name"], :name => "index_appstats_results_on_name"
   add_index "appstats_results", ["page"], :name => "index_appstats_results_on_page"
+
+  create_table "appstats_sub_results", :force => true do |t|
+    t.integer  "appstats_result_id"
+    t.string   "context_filter"
+    t.integer  "count"
+    t.float    "ratio_of_total"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "appstats_sub_results", ["context_filter"], :name => "index_appstats_sub_results_on_context_filter"
 
   create_table "appstats_test_objects", :force => true do |t|
     t.string   "name"

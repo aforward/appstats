@@ -32,7 +32,8 @@ module Appstats
         query.action.should == nil
         query.host.should == nil
         query.date_range.should == DateRange.new
-        
+        query.groups.should == []
+        query.group_query_to_sql.should == nil
       end
     
       it "should set the action and host" do
@@ -40,6 +41,8 @@ module Appstats
         query.action.should == "myblahs"
         query.host.should == "xyz.localnet"
         query.date_range.should == DateRange.parse("today")
+        query.groups.should == []
+        query.group_query_to_sql.should == nil
       end
     
       it "should understand the short hand 'on' instead of 'on server'" do
@@ -47,6 +50,8 @@ module Appstats
         query.action.should == "myblahs"
         query.host.should == "xyz.localnet"
         query.date_range.should == DateRange.new
+        query.groups.should == []
+        query.group_query_to_sql.should == nil
       end
     
       it "should understand the old 'on server' instead of new 'on'" do
@@ -54,7 +59,24 @@ module Appstats
         query.action.should == "myblahs"
         query.host.should == "xyz.localnet"
         query.date_range.should == DateRange.new
+        query.groups.should == []
+        query.group_query_to_sql.should == nil
       end
+
+      describe "group by" do
+
+        it "should handle single entry" do
+          query = Appstats::Query.new(:query => "# myblahs group by aa")
+          query.groups.should == ["aa"]
+        end
+
+        it "should handle multi-entry" do
+          query = Appstats::Query.new(:query => "# myblahs group by aa,bbbb")
+          query.groups.should == ["aa","bbbb"]
+        end
+        
+      end
+
     
     end
     
@@ -64,102 +86,130 @@ module Appstats
         Appstats::Entry.delete_all
       end
       
-      it "should return 0 if no results" do
-        query = Appstats::Query.new(:query => "# blahs")
-        result = query.run
-        result.new_record?.should == false
-        result.should == Appstats::Result.new(:result_type => "on_demand", :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs")
-      end
+      describe "core search" do
+        it "should return 0 if no results" do
+          query = Appstats::Query.new(:query => "# blahs")
+          result = query.run
+          result.new_record?.should == false
+          result.should == Appstats::Result.new(:result_type => "on_demand", :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs")
+        end
 
-      it "should set name and result_type if provided" do
-        query = Appstats::Query.new(:name => "x", :result_type => "some_reason", :query => "# blahs")
-        result = query.run
-        result.new_record?.should == false
-        result.should == Appstats::Result.new(:name => "x", :result_type => "some_reason", :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs")
-      end
-    
-      it "should track contexts" do
-        query = Appstats::Query.new(:query => "# blahs where (a=b and c=4) or (aaa=5)")
-        result = query.run
-        result.new_record?.should == false
-        result.contexts.should == "(a=b and c=4) or (aaa=5)"
-      end
-    
-    
-      it "should track the count if available" do
-        Appstats::Entry.create(:action => "myblahs")
-        query = Appstats::Query.new(:query => "# myblahs")
-        query.run.count.should == 1
-        Appstats::Entry.create(:action => "myblahs")
-        query.run.count.should == 2
-      end
+        it "should set name and result_type if provided" do
+          query = Appstats::Query.new(:name => "x", :result_type => "some_reason", :query => "# blahs")
+          result = query.run
+          result.new_record?.should == false
+          result.should == Appstats::Result.new(:name => "x", :result_type => "some_reason", :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs")
+        end
 
-      it "should not double count an entry with multiple contexts" do
-        Appstats::Entry.create_from_logger("myblahs",:app_name => ["a","b"])
-        query = Appstats::Query.new(:query => "# myblahs where app_name='a' or app_name = 'b'")
-        query.run.count.should == 1
+        it "should track contexts" do
+          query = Appstats::Query.new(:query => "# blahs where (a=b and c=4) or (aaa=5)")
+          result = query.run
+          result.new_record?.should == false
+          result.contexts.should == "(a=b and c=4) or (aaa=5)"
+        end
 
-        Appstats::Entry.create_from_logger("myblahs",:app_name => ["a","c"])
-        Appstats::Entry.create_from_logger("myblahs",:app_name => ["b","d"])
-        Appstats::Entry.create_from_logger("myblahs",:app_name => ["c","d"])
-        query = Appstats::Query.new(:query => "# myblahs where app_name='a' or app_name = 'b'")
-        query.run.count.should == 3
 
+        it "should track the count if available" do
+          Appstats::Entry.create(:action => "myblahs")
+          query = Appstats::Query.new(:query => "# myblahs")
+          query.run.count.should == 1
+          Appstats::Entry.create(:action => "myblahs")
+          query.run.count.should == 2
+        end
+
+        it "should not double count an entry with multiple contexts" do
+          Appstats::Entry.create_from_logger("myblahs",:app_name => ["a","b"])
+          query = Appstats::Query.new(:query => "# myblahs where app_name='a' or app_name = 'b'")
+          query.run.count.should == 1
+
+          Appstats::Entry.create_from_logger("myblahs",:app_name => ["a","c"])
+          Appstats::Entry.create_from_logger("myblahs",:app_name => ["b","d"])
+          Appstats::Entry.create_from_logger("myblahs",:app_name => ["c","d"])
+          query = Appstats::Query.new(:query => "# myblahs where app_name='a' or app_name = 'b'")
+          query.run.count.should == 3
+
+        end
+
+
+        it "should perform the action search" do
+          Appstats::Entry.create_from_logger("myblahs", :one => "11", :two => "222")
+          Appstats::Entry.create_from_logger("myblahs", :one => "111", :two => "22")
+
+          query = Appstats::Query.new(:query => "# myblahs where one=11")
+          result = query.run
+          result.count.should == 1
+
+          query = Appstats::Query.new(:query => "# myblahs where one=anything")
+          query.run.count.should == 0
+
+          query = Appstats::Query.new(:query => "# myblahs where one=11 && two=22")
+          query.run.count.should == 0
+
+          query = Appstats::Query.new(:query => "# myblahs where one=11 || two=22")
+          query.run.count.should == 2
+        end
+
+        describe "fixed_points searches" do
+
+          it "should handle year" do
+            query = Appstats::Query.new(:query => "# myblahs last year")
+            result = query.run
+            result.date_to_s.should == "2009-01-01 to 2009-12-31"
+          end
+
+          it "should handle quarter" do
+            query = Appstats::Query.new(:query => "# myblahs last quarter")
+            result = query.run
+            result.date_to_s.should == "2010-04-01 to 2010-06-30"
+          end
+
+          it "should handle month" do
+            query = Appstats::Query.new(:query => "# myblahs last month")
+            result = query.run
+            result.date_to_s.should == "2010-08-01 to 2010-08-31"
+          end
+
+          it "should handle week" do
+            query = Appstats::Query.new(:query => "# myblahs last week")
+            result = query.run
+            result.date_to_s.should == "2010-09-13 to 2010-09-19"
+          end
+
+          it "should handle day" do
+            query = Appstats::Query.new(:query => "# myblahs last day")
+            result = query.run
+            result.date_to_s.should == "2010-09-20"
+          end
+        end      
       end
-
       
-      it "should perform the action search" do
-        Appstats::Entry.create_from_logger("myblahs", :one => "11", :two => "222")
-        Appstats::Entry.create_from_logger("myblahs", :one => "111", :two => "22")
-    
-        query = Appstats::Query.new(:query => "# myblahs where one=11")
-        result = query.run
-        result.count.should == 1
-    
-        query = Appstats::Query.new(:query => "# myblahs where one=anything")
-        query.run.count.should == 0
-    
-        query = Appstats::Query.new(:query => "# myblahs where one=11 && two=22")
-        query.run.count.should == 0
-    
-        query = Appstats::Query.new(:query => "# myblahs where one=11 || two=22")
-        query.run.count.should == 2
-      end
-    
-      describe "fixed_points searches" do
-
-        it "should handle year" do
-          query = Appstats::Query.new(:query => "# myblahs last year")
-          result = query.run
-          result.date_to_s.should == "2009-01-01 to 2009-12-31"
-        end
-
-        it "should handle quarter" do
-          query = Appstats::Query.new(:query => "# myblahs last quarter")
-          result = query.run
-          result.date_to_s.should == "2010-04-01 to 2010-06-30"
-        end
-
-        it "should handle month" do
-          query = Appstats::Query.new(:query => "# myblahs last month")
-          result = query.run
-          result.date_to_s.should == "2010-08-01 to 2010-08-31"
-        end
-
-        it "should handle week" do
-          query = Appstats::Query.new(:query => "# myblahs last week")
-          result = query.run
-          result.date_to_s.should == "2010-09-13 to 2010-09-19"
-        end
-
-        it "should handle day" do
+      describe "group sub results" do
+        
+        it "should not create sub results if no groups" do
           query = Appstats::Query.new(:query => "# myblahs last day")
           result = query.run
-          result.date_to_s.should == "2010-09-20"
+          result.sub_results.should == []
+        end
+
+        it "should track sub results as required" do
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :ignore => "1")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :ignore => "1")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :ignore => "2")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "b", :ignore => "1")
+          
+          query = Appstats::Query.new(:query => "# myblahs group by service_provider")
+          result = query.run
+          result.count.should == 4
+          result.sub_results.size.should == 2
+          
+          result.sub_results[0].should == SubResult.new(:context_filter => "a", :count => 3, :ratio_of_total => 0.75)
+          result.sub_results[1].should == SubResult.new(:context_filter => "b", :count => 1, :ratio_of_total => 0.25)
+
+
         end
         
+        
       end
-    
 
     end
     
@@ -249,6 +299,45 @@ module Appstats
         Appstats::Query.host_filter_to_sql("").should == "1=1"
         Appstats::Query.host_filter_to_sql(nil).should == "1=1"
       end
+      
+    end
+    
+    describe "#group_query_to_sql" do
+            
+      before(:each) do
+        @template = "select id from appstats_entries where action = 'myblahs'"
+      end
+    
+      it "should support no filters" do
+        query = Appstats::Query.new(:query => "# myblahs")
+        query.group_query_to_sql.should == nil
+      end
+            
+      it "should support 1 filter" do
+        query = Appstats::Query.new(:query => "# myblahs group by aa")
+        expected = "select context_filter, count(*) num from (select group_concat(appstats_contexts.context_value separator ', ') as context_filter, appstats_entry_id from appstats_contexts where context_key in ('aa') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_filter;"
+        query.group_query_to_sql.should == expected
+      end
+
+      it "should support surrounding quotes" do
+        query = Appstats::Query.new(:query => "# myblahs group by 'aa'")
+        expected = "select context_filter, count(*) num from (select group_concat(appstats_contexts.context_value separator ', ') as context_filter, appstats_entry_id from appstats_contexts where context_key in ('aa') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_filter;"
+        query.group_query_to_sql.should == expected
+      end
+
+      it "should support inner quotes" do
+        query = Appstats::Query.new(:query => "# myblahs group by a's")
+        expected = "select context_filter, count(*) num from (select group_concat(appstats_contexts.context_value separator ', ') as context_filter, appstats_entry_id from appstats_contexts where context_key in ('a''s') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_filter;"
+        query.group_query_to_sql.should == expected
+      end
+
+
+      it "should support many filters" do
+        query = Appstats::Query.new(:query => "# myblahs group by aa, bbb")
+        expected = "select context_filter, count(*) num from (select group_concat(appstats_contexts.context_value separator ', ') as context_filter, appstats_entry_id from appstats_contexts where context_key in ('aa','bbb') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_filter;"
+        query.group_query_to_sql.should == expected
+      end
+      
       
     end
     
