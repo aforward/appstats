@@ -32,7 +32,7 @@ module Appstats
         query.action.should == nil
         query.host.should == nil
         query.date_range.should == DateRange.new
-        query.groups.should == []
+        query.group_by.should == []
         query.group_query_to_sql.should == nil
       end
     
@@ -41,7 +41,7 @@ module Appstats
         query.action.should == "myblahs"
         query.host.should == "xyz.localnet"
         query.date_range.should == DateRange.parse("today")
-        query.groups.should == []
+        query.group_by.should == []
         query.group_query_to_sql.should == nil
       end
     
@@ -50,7 +50,7 @@ module Appstats
         query.action.should == "myblahs"
         query.host.should == "xyz.localnet"
         query.date_range.should == DateRange.new
-        query.groups.should == []
+        query.group_by.should == []
         query.group_query_to_sql.should == nil
       end
     
@@ -59,7 +59,7 @@ module Appstats
         query.action.should == "myblahs"
         query.host.should == "xyz.localnet"
         query.date_range.should == DateRange.new
-        query.groups.should == []
+        query.group_by.should == []
         query.group_query_to_sql.should == nil
       end
 
@@ -67,12 +67,12 @@ module Appstats
 
         it "should handle single entry" do
           query = Appstats::Query.new(:query => "# myblahs group by aa")
-          query.groups.should == ["aa"]
+          query.group_by.should == ["aa"]
         end
 
         it "should handle multi-entry" do
           query = Appstats::Query.new(:query => "# myblahs group by aa,bbbb")
-          query.groups.should == ["aa","bbbb"]
+          query.group_by.should == ["aa","bbbb"]
         end
         
       end
@@ -91,14 +91,14 @@ module Appstats
           query = Appstats::Query.new(:query => "# blahs")
           result = query.run
           result.new_record?.should == false
-          result.should == Appstats::Result.new(:result_type => "on_demand", :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs")
+          result.should == Appstats::Result.new(:result_type => "on_demand", :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs", :group_by => nil)
         end
 
         it "should set name and result_type if provided" do
           query = Appstats::Query.new(:name => "x", :result_type => "some_reason", :query => "# blahs")
           result = query.run
           result.new_record?.should == false
-          result.should == Appstats::Result.new(:name => "x", :result_type => "some_reason", :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs")
+          result.should == Appstats::Result.new(:name => "x", :result_type => "some_reason", :query => "# blahs", :query_as_sql => query.query_to_sql, :count => 0, :action => "blahs", :group_by => nil)
         end
 
         it "should track contexts" do
@@ -185,13 +185,13 @@ module Appstats
       
       describe "group sub results" do
         
-        it "should not create sub results if no groups" do
+        it "should not create sub results if no group_by" do
           query = Appstats::Query.new(:query => "# myblahs last day")
           result = query.run
           result.sub_results.should == []
         end
 
-        it "should track sub results as required" do
+        it "should track sub results for single group by" do
           Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :ignore => "1")
           Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :ignore => "1")
           Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :ignore => "2")
@@ -200,14 +200,29 @@ module Appstats
           query = Appstats::Query.new(:query => "# myblahs group by service_provider")
           result = query.run
           result.count.should == 4
+          result.group_by.should == "service_provider"
           result.sub_results.size.should == 2
           
           result.sub_results[0].should == SubResult.new(:context_filter => "a", :count => 3, :ratio_of_total => 0.75)
           result.sub_results[1].should == SubResult.new(:context_filter => "b", :count => 1, :ratio_of_total => 0.25)
-
-
         end
         
+        it "should track sub results for multiple group by" do
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "1")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "1")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "2")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "b", :user => "1")
+          
+          query = Appstats::Query.new(:query => "# myblahs group by service_provider,user")
+          result = query.run
+          result.count.should == 4
+          result.group_by.should == "service_provider, user"
+          result.sub_results.size.should == 3
+          
+          result.sub_results[0].should == SubResult.new(:context_filter => "a, 1", :count => 2, :ratio_of_total => 0.50)
+          result.sub_results[1].should == SubResult.new(:context_filter => "b, 1", :count => 1, :ratio_of_total => 0.25)
+          result.sub_results[2].should == SubResult.new(:context_filter => "a, 2", :count => 1, :ratio_of_total => 0.25)
+        end        
         
       end
 
@@ -315,26 +330,26 @@ module Appstats
             
       it "should support 1 filter" do
         query = Appstats::Query.new(:query => "# myblahs group by aa")
-        expected = "select context_filter, count(*) num from (select group_concat(appstats_contexts.context_value separator ', ') as context_filter, appstats_entry_id from appstats_contexts where context_key in ('aa') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_filter;"
+        expected = "select context_key_filter, context_value_filter, count(*) num from (select group_concat(appstats_contexts.context_key) as context_key_filter, group_concat(appstats_contexts.context_value) as context_value_filter, appstats_entry_id from appstats_contexts where context_key in ('aa') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_value_filter;"
         query.group_query_to_sql.should == expected
       end
 
       it "should support surrounding quotes" do
         query = Appstats::Query.new(:query => "# myblahs group by 'aa'")
-        expected = "select context_filter, count(*) num from (select group_concat(appstats_contexts.context_value separator ', ') as context_filter, appstats_entry_id from appstats_contexts where context_key in ('aa') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_filter;"
+        expected = "select context_key_filter, context_value_filter, count(*) num from (select group_concat(appstats_contexts.context_key) as context_key_filter, group_concat(appstats_contexts.context_value) as context_value_filter, appstats_entry_id from appstats_contexts where context_key in ('aa') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_value_filter;"
         query.group_query_to_sql.should == expected
       end
 
       it "should support inner quotes" do
         query = Appstats::Query.new(:query => "# myblahs group by a's")
-        expected = "select context_filter, count(*) num from (select group_concat(appstats_contexts.context_value separator ', ') as context_filter, appstats_entry_id from appstats_contexts where context_key in ('a''s') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_filter;"
+        expected = "select context_key_filter, context_value_filter, count(*) num from (select group_concat(appstats_contexts.context_key) as context_key_filter, group_concat(appstats_contexts.context_value) as context_value_filter, appstats_entry_id from appstats_contexts where context_key in ('a''s') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_value_filter;"
         query.group_query_to_sql.should == expected
       end
 
 
       it "should support many filters" do
         query = Appstats::Query.new(:query => "# myblahs group by aa, bbb")
-        expected = "select context_filter, count(*) num from (select group_concat(appstats_contexts.context_value separator ', ') as context_filter, appstats_entry_id from appstats_contexts where context_key in ('aa','bbb') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_filter;"
+        expected = "select context_key_filter, context_value_filter, count(*) num from (select group_concat(appstats_contexts.context_key) as context_key_filter, group_concat(appstats_contexts.context_value) as context_value_filter, appstats_entry_id from appstats_contexts where context_key in ('aa','bbb') and appstats_entry_id in ( #{@template} ) group by appstats_entry_id) results group by context_value_filter;"
         query.group_query_to_sql.should == expected
       end
       
