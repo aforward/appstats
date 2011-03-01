@@ -2,7 +2,7 @@ module Appstats
   class Result < ActiveRecord::Base
     set_table_name "appstats_results"
 
-    attr_accessible :name, :result_type, :query, :query_as_sql, :count, :action, :host, :from_date, :to_date, :contexts, :group_by
+    attr_accessible :name, :result_type, :query, :query_to_sql, :count, :action, :host, :from_date, :to_date, :contexts, :group_by, :query_type
     has_many :sub_results, :table_name => 'appstats_subresults', :foreign_key => 'appstats_result_id', :order => 'count DESC'
 
     def date_to_s
@@ -47,7 +47,7 @@ module Appstats
     private
 
       def state
-        [name, result_type, query, query_as_sql, count, action, host, from_date, to_date,contexts,group_by]
+        [name, result_type, query, query_to_sql, count, action, host, from_date, to_date,contexts,group_by,query_type]
       end
 
     

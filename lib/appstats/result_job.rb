@@ -2,7 +2,7 @@ module Appstats
   class ResultJob < ActiveRecord::Base
     set_table_name "appstats_result_jobs"
 
-    attr_accessible :name, :frequency, :status, :query, :last_run_at
+    attr_accessible :name, :frequency, :status, :query, :last_run_at, :query_type
 
     @@frequency_methods = 
 

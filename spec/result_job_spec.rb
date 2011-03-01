@@ -20,15 +20,17 @@ module Appstats
         @result_job.status.should == nil
         @result_job.query.should == nil
         @result_job.last_run_at.should == nil
+        @result_job.query_type.should == nil
       end
     
       it "should set on constructor" do
-        result = Appstats::ResultJob.new(:name => 'a', :frequency => 'b', :status => 'c', :query => 'd', :last_run_at => Time.parse("2010-02-03"))
-        result.name.should == 'a'
-        result.frequency.should == 'b'
-        result.status.should == 'c'
-        result.query.should == 'd'
-        result.last_run_at.to_s.should == Time.parse("2010-02-03").to_s
+        result_job = Appstats::ResultJob.new(:name => 'a', :frequency => 'b', :status => 'c', :query => 'd', :last_run_at => Time.parse("2010-02-03"), :query_type => 'e')
+        result_job.name.should == 'a'
+        result_job.frequency.should == 'b'
+        result_job.status.should == 'c'
+        result_job.query.should == 'd'
+        result_job.last_run_at.to_s.should == Time.parse("2010-02-03").to_s
+        result_job.query_type.should == 'e'
       end
     
     end

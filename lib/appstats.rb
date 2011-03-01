@@ -19,6 +19,7 @@ require "#{File.dirname(__FILE__)}/appstats/host"
 require "#{File.dirname(__FILE__)}/appstats/context_key"
 require "#{File.dirname(__FILE__)}/appstats/context_value"
 require "#{File.dirname(__FILE__)}/appstats/test_object"
+require "#{File.dirname(__FILE__)}/appstats/test_query"
 
 # required in the appstats.gemspec
 unless Appstats.const_defined?(:VERSION)
