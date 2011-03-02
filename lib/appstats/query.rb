@@ -25,12 +25,12 @@ module Appstats
         
         all_names = @query_type.split("::")
         if all_names.size == 1
-          custom_query = Object::const_get(@query_type).new  
+          @custom_query = Object::const_get(@query_type).new  
         else
-          custom_query = eval(all_names[0...-1].join("::")).const_get(all_names.last).new
+          @custom_query = eval(all_names[0...-1].join("::")).const_get(all_names.last).new
         end
-        custom_query.query = self
-        custom_query.process_query
+        @custom_query.query = self
+        @custom_query.process_query
       end
       
     end
@@ -41,12 +41,13 @@ module Appstats
         result.group_by = @group_by.join(", ")
         result.group_query_to_sql = @group_query_to_sql
       end
+
       result.group_by = @group_by.join(", ") unless @group_by.empty?
-      result.count = ActiveRecord::Base.connection.select_one(@query_to_sql)["num"].to_i
+      result.count = run_query { |conn| conn.select_one(@query_to_sql)["num"].to_i }
       result.save
-      
+
       unless @group_by.empty?
-        all_sub_results = ActiveRecord::Base.connection.select_all(@group_query_to_sql)
+        all_sub_results = run_query { |conn| conn.select_all(@group_query_to_sql) }
         all_sub_results.each do |data|
           keys = data["context_key_filter"].split(",")
           values = data["context_value_filter"].split(",")
@@ -133,6 +134,25 @@ module Appstats
     end
     
     private
+    
+      def db_connection
+        return ActiveRecord::Base.connection if @custom_query.nil?
+        @backup_config = ActiveRecord::Base.connection.instance_variable_get(:@config)
+        custom_connection = @custom_query.db_connection
+      end
+    
+      def restore_connection
+        return if @backup_config.nil?
+        ActiveRecord::Base.establish_connection @backup_config
+        @backup_config = nil
+      end
+    
+      def run_query
+        results = yield db_connection
+        restore_connection
+        results
+      end
+    
     
       def normalize_action_name(action_name)
         action = Appstats::Action.where("plural_name = ?",action_name).first

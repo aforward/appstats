@@ -307,6 +307,26 @@ module Appstats
           result.sub_results.size.should == 2
         end
         
+        it "should handle remote servers" do
+          TestObject.create(:name => "aa")
+          
+          query1 = Query.new(:query => "# x on testServer", :query_type => "Appstats::TestQuery")
+          result1 = query1.run
+
+          query2 = Query.new(:query => "# x on otherServer", :query_type => "Appstats::TestQuery")
+          result2 = query2.run
+          
+          if result2.count == result1.count #coincidence
+            TestObject.create(:name => "aa")
+            result2 = query2.run
+          end
+
+          result1.count.should_not == result2.count
+
+          result1 = query1.run
+          result1.count.should_not == result2.count
+        end
+        
       end
 
     end
