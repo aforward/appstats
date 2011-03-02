@@ -223,9 +223,26 @@ module Appstats
             result.date_to_s.should == "2010-09-20"
           end
         end      
+        
+        describe "real examples" do
+          
+          it "nil split being called" do
+            query = Appstats::Query.new(:query => "# buyer-address-lookups group by city", :query_type => "Appstats::InvalidTestQuery")
+            result = query.run
+            result.count.should == 0
+            result.sub_results.size.should == 0
+          end
+          
+        end
+        
+        
       end
       
       describe "group sub results" do
+        
+        before(:each) do
+          Appstats::Entry.delete_all
+        end
         
         it "should not create sub results if no group_by" do
           query = Appstats::Query.new(:query => "# myblahs last day")

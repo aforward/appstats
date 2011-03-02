@@ -49,6 +49,11 @@ module Appstats
       unless @group_by.empty?
         all_sub_results = run_query { |conn| conn.select_all(@group_query_to_sql) }
         all_sub_results.each do |data|
+          if data["context_key_filter"].nil? || data["context_value_filter"].nil? || data["num"].nil?
+            Appstats.log(:error,"Missing context_key_filter, context_value_filter, or num in #{data.inspect}")
+            next 
+          end
+          
           keys = data["context_key_filter"].split(",")
           values = data["context_value_filter"].split(",")
           key_values = {} and keys.each_with_index { |k,i| key_values[k] = values[i] }

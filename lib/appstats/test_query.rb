@@ -31,7 +31,24 @@ module Appstats
     end
   end
   
+  class InvalidTestQuery
+
+    attr_accessor :query
+
+    def process_query
+      query.query_to_sql = "select * from appstats_test_objects"
+      query.group_query_to_sql = "select * from appstats_test_objects"
+    end
+
+
+    def db_connection
+      ActiveRecord::Base.connection
+    end
+    
+  end
+  
 end
+
 
 class YetAnotherTestQuery
   attr_accessor :query

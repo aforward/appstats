@@ -30,10 +30,12 @@ module Appstats
 
   def self.log(type,raw_message)
     message = "VERSION #{Appstats::VERSION} : #{raw_message}"
-    if $logger.nil?
-      # puts "LOCAL LOG #{type}: #{message}"
+    if !$logger.nil?
+      $logger.send(type,message)
+    elsif defined?(RAILS_DEFAULT_LOGGER)
+      RAILS_DEFAULT_LOGGER.send(type,message)
     else
-      $logger.send(type,message)  
+      # puts "LOCAL LOG #{type}: #{message}"
     end
   end
   
