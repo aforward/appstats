@@ -161,6 +161,7 @@ module Appstats
           restore_connection
           Appstats.log(:error,"Something bad occurred during Appstats::#{query_type}#run_query")
           Appstats.log(:error,e.message)
+          nil
         end
       end
     
