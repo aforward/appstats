@@ -20,6 +20,21 @@ module Appstats
     
   end
   
+  class BadTestQuery
+
+    attr_accessor :query, :query_to_sql, :group_query_to_sql
+
+    def process_query
+      query.query_to_sql = "this is not valid sql"
+    end
+    
+    def db_connection
+      dbconfig = YAML::load(File.open('db/config.yml'))
+      ActiveRecord::Base.establish_connection(dbconfig['development']).connection
+    end
+    
+  end
+  
   module Core
     class AnotherTestQuery
       attr_accessor :query

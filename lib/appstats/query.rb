@@ -153,9 +153,15 @@ module Appstats
       end
     
       def run_query
-        results = yield db_connection
-        restore_connection
-        results
+        begin
+          results = yield db_connection
+          restore_connection
+          results
+        rescue Exception => e
+          restore_connection
+          Appstats.log(:error,"Something bad occurred during Appstats::#{query_type}#run_query")
+          Appstats.log(:error,e.message)
+        end
       end
     
     

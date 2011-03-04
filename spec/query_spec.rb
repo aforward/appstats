@@ -112,7 +112,7 @@ module Appstats
       
       describe "distinct query_type" do
         
-        it "should delete sql to other queries" do
+        it "should use sql query_type queries" do
           query = Appstats::Query.new(:query => "# stuff", :query_type => "Appstats::TestQuery")
           query.query_to_sql.should == "select count(*) as num from appstats_test_objects"
           query.group_query_to_sql.should == "select context_key_filter, context_value_filter, count(*) as num from (select 'name' as context_key_filter, name as context_value_filter from appstats_test_objects) results group by context_value_filter"
@@ -225,7 +225,7 @@ module Appstats
         end      
         
         describe "real examples" do
-          
+        
           it "nil split being called" do
             query = Appstats::Query.new(:query => "# buyer-address-lookups group by city", :query_type => "Appstats::InvalidTestQuery")
             result = query.run
@@ -234,7 +234,6 @@ module Appstats
           end
           
         end
-        
         
       end
       
@@ -311,6 +310,16 @@ module Appstats
           result.count.should == 2
           result.query_to_sql.should == "select count(*) as num from appstats_test_objects"
         end
+
+        it "should reset database if things fail" do
+          query = Query.new(:query => "# x", :query_type => "Appstats::BadTestQuery")
+          result = query.run
+          result.query_type.should == "Appstats::BadTestQuery"
+          result.count.should == nil
+
+          ActiveRecord::Base.connection.current_database.should == YAML::load(File.open('db/config.yml'))["test"]["database"]
+        end
+
 
         it "should handle group by" do
           TestObject.create(:name => "aa") and TestObject.create(:name => "aa") and TestObject.create(:name => "bb")
