@@ -32,6 +32,8 @@ module Appstats
     message = "VERSION #{Appstats::VERSION} : #{raw_message}"
     if !$logger.nil?
       $logger.send(type,message)
+    elsif defined?(Rails)
+      Rails.logger.send(type,message)
     elsif defined?(RAILS_DEFAULT_LOGGER)
       RAILS_DEFAULT_LOGGER.send(type,message)
     else
