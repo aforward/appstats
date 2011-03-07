@@ -5,7 +5,6 @@ describe ActsAsAppstatsable do
   before(:each) do
     Time.stub!(:now).and_return(Time.parse('2010-09-21 23:15:20'))
     Appstats::Logger.reset
-    Appstats::Logger.raw_read.size.should == 0
     Appstats::TestObject.acts_as_appstatsable_options
   end
 
