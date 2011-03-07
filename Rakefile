@@ -4,6 +4,8 @@ Bundler::GemHelper.install_tasks
 require 'tasks/standalone_migrations'
 require 'appstats/tasks'
 
+import 'lib/appstats/ci.rake'
+
 begin
   MigratorTasks.new do |t|
     t.migrations = "db/migrations"
