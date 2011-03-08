@@ -1,9 +1,10 @@
 require 'bundler'
 Bundler::GemHelper.install_tasks
 
-require 'tasks/standalone_migrations'
 require 'appstats/tasks'
+require 'metric_fu'
 require 'rspec/core/rake_task'
+require 'tasks/standalone_migrations'
 
 import 'lib/appstats/ci.rake'
 
@@ -22,6 +23,6 @@ rescue LoadError => e
 end
 
 RSpec::Core::RakeTask.new(:spec) do |t|
-	t.pattern = "spec/**/*_spec.rb"
+	t.pattern = "spec/*_spec.rb"
 	t.rspec_opts = "--color"
 end

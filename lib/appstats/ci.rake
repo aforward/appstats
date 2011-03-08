@@ -7,7 +7,7 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
         Rake::Task['db:test:load'].invoke
         Rake::Task['db:test:prepare'].invoke
         Rake::Task['spec'].invoke
-        #Rake::Task['metrics:all'].invoke
+        Rake::Task['metrics:all'].invoke
         Rake::Task['ci:success'].invoke
       rescue Exception => e
         Rake::Task['ci:failure'].invoke
