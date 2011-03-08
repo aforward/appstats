@@ -26,3 +26,8 @@ RSpec::Core::RakeTask.new(:spec) do |t|
 	t.pattern = "spec/*_spec.rb"
 	t.rspec_opts = "--color"
 end
+
+MetricFu::Configuration.run do |config|
+  config.metrics = [:churn, :flay, :flog, :reek, :roodi, :saikuro, :hotspots]
+  config.graphs = config.metrics - [:churn, :saikuro, :hotspots]
+end
