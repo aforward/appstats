@@ -3,6 +3,7 @@ Bundler::GemHelper.install_tasks
 
 require 'tasks/standalone_migrations'
 require 'appstats/tasks'
+require 'rspec/core/rake_task'
 
 import 'lib/appstats/ci.rake'
 
@@ -18,4 +19,9 @@ begin
   end
 rescue LoadError => e
   puts "gem install standalone_migrations to get db:migrate:* tasks! (Error: #{e})"
+end
+
+RSpec::Core::RakeTask.new(:spec) do |t|
+	t.pattern = "spec/**/*_spec.rb"
+	t.rspec_opts = "--color"
 end
