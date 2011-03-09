@@ -311,6 +311,13 @@ module Appstats
           result.query_to_sql.should == "select count(*) as num from appstats_test_objects"
         end
 
+        it "should handle group by errors" do
+          query = Query.new(:query => "# x group by y", :query_type => "Appstats::BadGroupTestQuery")
+          result = query.run
+          result.query_type.should == "Appstats::BadGroupTestQuery"
+          result.sub_results.should == []
+        end
+
         it "should reset database if things fail" do
           query = Query.new(:query => "# x", :query_type => "Appstats::BadTestQuery")
           result = query.run
