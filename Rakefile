@@ -28,6 +28,7 @@ RSpec::Core::RakeTask.new(:spec) do |t|
 end
 
 MetricFu::Configuration.run do |config|
-  config.metrics = [:churn, :flay, :flog, :reek, :roodi, :saikuro, :hotspots]
-  config.graphs = config.metrics - [:churn, :saikuro, :hotspots]
+  config.metrics = [:rcov]
+  config.rcov[:test_files] = ['spec/*_spec.rb']
+  config.rcov[:rcov_opts] << '-Ispec'
 end
