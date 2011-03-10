@@ -1,7 +1,7 @@
 unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:* tasks
   namespace :ci do
     desc "Perform a build on the CI server"
-    task :build => ['config']  do
+    task :build => ['config', 'create_logs']  do
       begin
         Rake::Task['appstats:install:migrations'].invoke
         Rake::Task['db:migrate'].invoke
@@ -21,6 +21,14 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
       dest_db_file = "#{Rails.root}/db/config.yml"
       abort "No database file [#{source_db_file}], unable to continue CI build" unless File.exists? source_db_file
       FileUtils.cp source_db_file, dest_db_file, :preserve => false
+    end
+
+    desc "Create log files that are used when running tests"
+    task :create_logs do
+      FileUtils.mkdir 'log'
+      [4, 7, 8].each do |i|
+        FileUtils.touch "log/appstats_remote_log_2#{i}.log"
+      end
     end
 
     desc "Testing the environment"
