@@ -3,8 +3,7 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
     desc "Perform a build on the CI server"
     task :build => ['config']  do
       begin
-        Rake::Task['db:test:purge'].invoke
-        Rake::Task['db:test:load'].invoke
+        Rake::Task['appstats:install:migrations'].invoke
         Rake::Task['db:migrate'].invoke
         Rake::Task['db:test:prepare'].invoke
         Rake::Task['spec'].invoke
