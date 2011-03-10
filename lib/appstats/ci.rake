@@ -25,7 +25,14 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
 
     desc "Create log files that are used when running tests"
     task :create_logs do
-      FileUtils.mkdir 'log'
+      if not File.exists?('log') then
+        FileUtils.mkdir 'log'
+      else
+        if not File.directory?('log') then
+          FileUtils.rm 'log'
+          FileUtils.mkdir 'log'
+        end
+      end
       [4, 7, 8].each do |i|
         FileUtils.touch "log/appstats_remote_log_2#{i}.log"
       end
