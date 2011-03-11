@@ -14,6 +14,9 @@ module Appstats
     
     def self.filename_template=(value)
       @@filename_template = value
+      dir = File.dirname(@@filename_template)
+      FileUtils.mkdir_p(dir) unless File.exists?(dir)
+      @@filename_template
     end
     
     def self.filename_template
