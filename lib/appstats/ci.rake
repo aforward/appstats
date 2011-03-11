@@ -18,7 +18,7 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
     desc "Setup the correct database configuration files"
     task :config do
       source_db_file = '/cenx/appstats/sensitive/config.yml'
-      dest_db_file = "#{Rails.root}/db/config.yml"
+      dest_db_file = "#{Dir.pwd}/db/config.yml"
       abort "No database file [#{source_db_file}], unable to continue CI build" unless File.exists? source_db_file
       FileUtils.cp source_db_file, dest_db_file, :preserve => false
     end
