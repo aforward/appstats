@@ -1,5 +1,6 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'rubygems'
+require 'rspec'
 require File.dirname(__FILE__) + '/../lib/appstats'
 
 # Requires supporting ruby files with custom matchers and macros, etc,
