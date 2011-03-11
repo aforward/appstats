@@ -35,8 +35,8 @@ module Appstats
       end
       
       it "should support full paths" do
-        Appstats::Logger.filename_template = "/a/b/appstats"
-        Appstats::Logger.filename.should == '/a/b/appstats_2010-09-21.log'
+        Appstats::Logger.filename_template = "/tmp/a/b/appstats"
+        Appstats::Logger.filename.should == '/tmp/a/b/appstats_2010-09-21.log'
       end
       
     end
