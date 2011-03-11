@@ -133,14 +133,14 @@ module Appstats
           query = Appstats::Query.new(:query => "# blahs")
           result = query.run
           result.new_record?.should == false
-          result.should == Appstats::Result.new(:result_type => "on_demand", :query => "# blahs", :query_to_sql => query.query_to_sql, :count => 0, :action => "blahs", :group_by => nil)
+          result.should == Appstats::Result.new(:result_type => "on_demand", :query => "# blahs", :query_to_sql => query.query_to_sql, :count => 0, :action => "blahs", :group_by => nil, :db_username => 'root', :db_name => 'appstats_test', :db_host => 'localhost' )
         end
 
         it "should set name and result_type if provided" do
           query = Appstats::Query.new(:name => "x", :result_type => "some_reason", :query => "# blahs")
           result = query.run
           result.new_record?.should == false
-          result.should == Appstats::Result.new(:name => "x", :result_type => "some_reason", :query => "# blahs", :query_to_sql => query.query_to_sql, :count => 0, :action => "blahs", :group_by => nil)
+          result.should == Appstats::Result.new(:name => "x", :result_type => "some_reason", :query => "# blahs", :query_to_sql => query.query_to_sql, :count => 0, :action => "blahs", :group_by => nil, :db_username => 'root', :db_name => 'appstats_test', :db_host => 'localhost')
         end
 
         it "should track contexts" do

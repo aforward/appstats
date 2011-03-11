@@ -43,11 +43,19 @@ module Appstats
       end
 
       result.group_by = @group_by.join(", ") unless @group_by.empty?
-      result.count = run_query { |conn| conn.select_one(@query_to_sql)["num"].to_i }
+      
+      data = run_query { |conn| conn.select_one(@query_to_sql)["num"].to_i }
+      unless data.nil?
+        result.count = data[:results]
+        result.db_username = data[:db_config][:username]
+        result.db_name = data[:db_config][:database]
+        result.db_host = data[:db_config][:host]
+      end
       result.save
 
       unless @group_by.empty?
-        all_sub_results = run_query { |conn| conn.select_all(@group_query_to_sql) } || []
+        data = run_query { |conn| conn.select_all(@group_query_to_sql) }
+        all_sub_results = data.nil? ? [] : data[:results]
         all_sub_results.each do |data|
           if data["context_key_filter"].nil? || data["context_value_filter"].nil? || data["num"].nil?
             Appstats.log(:error,"Missing context_key_filter, context_value_filter, or num in #{data.inspect}")
@@ -156,7 +164,7 @@ module Appstats
         begin
           results = yield db_connection
           restore_connection
-          results
+          { :results => results, :db_config => ActiveRecord::Base.connection.instance_variable_get(:@config) }
         rescue Exception => e
           restore_connection
           Appstats.log(:error,"Something bad occurred during Appstats::#{query_type}#run_query")

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110301230757) do
+ActiveRecord::Schema.define(:version => 20110311214833) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
@@ -122,6 +122,9 @@ ActiveRecord::Schema.define(:version => 20110301230757) do
     t.text     "group_query_to_sql"
     t.string   "group_by"
     t.string   "query_type"
+    t.string   "db_username"
+    t.string   "db_name"
+    t.string   "db_host"
   end
 
   add_index "appstats_results", ["action"], :name => "index_appstats_results_on_action"
