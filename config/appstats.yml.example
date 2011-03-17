@@ -16,3 +16,5 @@ remote_servers:
     :password: abc123
     :path: /home/deploy/rails/myotherapp/current/log
     :template: appstats
+third_party_queries:
+  - :path: /file/to/your/custom/my_query.rb

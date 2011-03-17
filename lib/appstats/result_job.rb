@@ -19,6 +19,27 @@ module Appstats
     end
     alias_method :eql?, :==
 
+    def self.require_third_party_queries(queries)
+      if queries.nil?
+        Appstats.log(:info, "No third party query provided.")
+        return
+      end
+      queries.each do |q|
+        if q[:path].nil?
+          Appstats.log(:info, "Please specify the third party query ':path'.")
+          next
+        end
+        unless File.exists?(q[:path])
+          Appstats.log(:info, "Unable to find third party query [#{q[:path]}].")
+          next
+        end
+        
+        Appstats.log(:info, "Loaded to third party query [#{q[:path]}].")
+        require q[:path]
+      end
+      
+    end
+
     def self.run
       count = 0
       all = ResultJob.where("frequency <> 'once' or last_run_at IS NULL").all

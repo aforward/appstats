@@ -122,12 +122,12 @@ module Appstats
       
       it "should accept numbers" do
         Appstats::Logger.entry(5, :blah => 6)   
-        Appstats::Logger.raw_read.should == ["0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=5 : blah=6"]
+        Appstats::Logger.raw_read.should == ["0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=5 : blah=6"]
       end
 
       it "should accept arrays" do
         Appstats::Logger.entry('search', :provider => [ 'one', 'two' ])   
-        Appstats::Logger.raw_read.should == ["0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=search : provider=one : provider=two"]
+        Appstats::Logger.raw_read.should == ["0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=search : provider=one : provider=two"]
       end
 
 
@@ -137,7 +137,7 @@ module Appstats
 
       it "should look similar to regular entry" do
         Appstats::Logger.exception_entry(RuntimeError.new("blah"),:on => "login")   
-        Appstats::Logger.raw_read.should == ["0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=appstats-exception : error=blah : on=login"]
+        Appstats::Logger.raw_read.should == ["0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=appstats-exception : error=blah : on=login"]
       end
       
     end
@@ -154,47 +154,47 @@ module Appstats
     
        it "should handle a statistics entry" do
          expected = { :action => "address_search", :timestamp => "2010-09-21 23:15:20" }
-         actual = Appstats::Logger.entry_to_hash("0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
+         actual = Appstats::Logger.entry_to_hash("0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
          actual.should == expected
        end
        
        it "should handle contexts" do
          expected = { :action => "address_filter", :timestamp => "2010-09-21 23:15:20", :server => "Live", :app_name => 'Market' }
-         actual = Appstats::Logger.entry_to_hash("0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
+         actual = Appstats::Logger.entry_to_hash("0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
          actual.should == expected
        end
 
        it "should handle multiple actions" do
          expected = { :action => ["address_filter", "blah"], :timestamp => "2010-09-21 23:15:20", :server => "Live", :app_name => 'Market' }
-         actual = Appstats::Logger.entry_to_hash("0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : action=blah : app_name=Market : server=Live")
+         actual = Appstats::Logger.entry_to_hash("0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : action=blah : app_name=Market : server=Live")
          actual.should == expected
        end
 
        it "should handle multiple of same context" do
          expected = { :action => "address_filter", :timestamp => "2010-09-21 23:15:20", :server => "Live", :app_name => ['Sin','Market'] }
-         actual = Appstats::Logger.entry_to_hash("0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Sin : app_name=Market : server=Live")
+         actual = Appstats::Logger.entry_to_hash("0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Sin : app_name=Market : server=Live")
          actual.should == expected
        end
 
        it "should handle no actions" do
          expected = { :action => "UNKNOWN_ACTION", :timestamp => "2010-09-21 23:15:20", :server => "Live", :app_name => 'Market' }
-         actual = Appstats::Logger.entry_to_hash("0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 app_name=Market : server=Live")
+         actual = Appstats::Logger.entry_to_hash("0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 app_name=Market : server=Live")
          actual.should == expected
        end
     
        it "should handle actions with the delimiter (and change the delimiter)" do
          expected = { :action => "address:=search-n", :timestamp => "2010-09-21 23:15:20" }
-         actual = Appstats::Logger.entry_to_hash("0.17.2 setup[::,==,--n] 2010-09-21 23:15:20 action==address:=search-n")
+         actual = Appstats::Logger.entry_to_hash("0.17.3 setup[::,==,--n] 2010-09-21 23:15:20 action==address:=search-n")
          actual.should == expected
     
          expected = { :action => "address::search==--n", :timestamp => "2010-09-21 23:15:20" }
-         actual = Appstats::Logger.entry_to_hash("0.17.2 setup[:::,===,---n] 2010-09-21 23:15:20 action===address::search==--n")
+         actual = Appstats::Logger.entry_to_hash("0.17.3 setup[:::,===,---n] 2010-09-21 23:15:20 action===address::search==--n")
          actual.should == expected
        end
     
        it "should handle contexts with the delimiter (and change the delimiter)" do
          expected = { :action => "address", :timestamp => "2010-09-21 23:15:20", :server => "market:eval=-n" }
-         actual = Appstats::Logger.entry_to_hash("0.17.2 setup[::,==,--n] 2010-09-21 23:15:20 action==address :: server==market:eval=-n")
+         actual = Appstats::Logger.entry_to_hash("0.17.3 setup[::,==,--n] 2010-09-21 23:15:20 action==address :: server==market:eval=-n")
          actual.should == expected
        end
        
@@ -203,66 +203,66 @@ module Appstats
     describe "#entry_to_s" do
       
       it "should handle a statistics entry" do
-        expected = "0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
+        expected = "0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
         actual = Appstats::Logger.entry_to_s("address_search")
         actual.should == expected
       end
       
       it "should handle numbers" do
-        expected = "0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=1 : note=2.2"
+        expected = "0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=1 : note=2.2"
         actual = Appstats::Logger.entry_to_s(1,:note => 2.2)
         actual.should == expected
       end
       
       it "should handle default contexts" do
         Appstats::Logger.default_contexts[:app_name] = "market"
-        expected = "0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search : app_name=market"
+        expected = "0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search : app_name=market"
         actual = Appstats::Logger.entry_to_s("address_search")
         actual.should == expected
       end
       
       it "should handle contexts (and sort them by symbol)" do
-        expected = "0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
+        expected = "0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
         actual = Appstats::Logger.entry_to_s("address_filter", { :server => "Live", :app_name => 'Market' })
         actual.should == expected
       end
 
       it "should handle actions with the delimiter (and change the delimiter)" do
-        expected = "0.17.2 setup[::,==,--n] 2010-09-21 23:15:20 action==address:=search-n"
+        expected = "0.17.3 setup[::,==,--n] 2010-09-21 23:15:20 action==address:=search-n"
         actual = Appstats::Logger.entry_to_s("address:=search-n")
         actual.should == expected
 
-        expected = "0.17.2 setup[:::,===,---n] 2010-09-21 23:15:20 action===address::search==--n"
+        expected = "0.17.3 setup[:::,===,---n] 2010-09-21 23:15:20 action===address::search==--n"
         actual = Appstats::Logger.entry_to_s("address::search==--n")
         actual.should == expected
       end
 
       it "should handle contexts with the delimiter (and change the delimiter)" do
-        expected = "0.17.2 setup[::,==,--n] 2010-09-21 23:15:20 action==address :: server==market:eval=-n"
+        expected = "0.17.3 setup[::,==,--n] 2010-09-21 23:15:20 action==address :: server==market:eval=-n"
         actual = Appstats::Logger.entry_to_s("address", :server => 'market:eval=-n')
         actual.should == expected
       end
 
       it "should ignore spaces" do
-        expected = "0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address search"
+        expected = "0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address search"
         actual = Appstats::Logger.entry_to_s("address search")
         actual.should == expected
       end
       
       it "should convert newlines in action" do
-        expected = "0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address_-nsearch"
+        expected = "0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address_-nsearch"
         actual = Appstats::Logger.entry_to_s("address_\nsearch")
         actual.should == expected
       end
 
       it "should convert newlines in context" do
-        expected = "0.17.2 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search : blah=some-nlong-nstatement"
+        expected = "0.17.3 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search : blah=some-nlong-nstatement"
         actual = Appstats::Logger.entry_to_s("address_search",:blah => "some\nlong\nstatement")
         actual.should == expected
       end
       
       it "should convert newlines based on the delimiter" do
-        expected = "0.17.2 setup[::,==,--n] 2010-09-21 23:15:20 action==address:=--nsearch-n"
+        expected = "0.17.3 setup[::,==,--n] 2010-09-21 23:15:20 action==address:=--nsearch-n"
         actual = Appstats::Logger.entry_to_s("address:=\nsearch-n")
         actual.should == expected
       end

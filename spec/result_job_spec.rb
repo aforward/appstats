@@ -258,6 +258,35 @@ module Appstats
 
     end
     
+    describe "#require_third_party_queries" do
+
+
+      it "should ignore invalid input" do
+        Appstats.should_receive(:log).with(:info, "Please specify the third party query ':path'.")
+        Appstats::ResultJob.require_third_party_queries([ { :blah => '/does/not/exist.rb'} ])
+      end
+
+      it "should ignore nill input" do
+        Appstats.should_receive(:log).with(:info, "No third party query provided.")
+        Appstats::ResultJob.require_third_party_queries(nil)
+      end
+      
+      it "should ignore invalid files" do
+        File.exists?('/does/not/exist.rb').should == false
+        Appstats.should_receive(:log).with(:info, "Unable to find third party query [/does/not/exist.rb].")
+        Appstats::ResultJob.require_third_party_queries([ { :path => '/does/not/exist.rb'} ])
+      end
+      
+      it "should load the file" do
+        Object::const_defined?('UnloadedQuery').should == false
+        Appstats.should_receive(:log).with(:info, "Loaded to third party query [#{File.dirname(__FILE__)}/../lib/appstats/test_unloaded_query.rb].")
+        Appstats::ResultJob.require_third_party_queries([ { :path => "#{File.dirname(__FILE__)}/../lib/appstats/test_unloaded_query.rb"} ])
+        Object::const_defined?('UnloadedQuery').should == true
+      end
+      
+    end
+    
+    
     describe "#run" do
       
       before(:each) do
