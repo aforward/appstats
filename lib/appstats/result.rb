@@ -45,6 +45,20 @@ module Appstats
       return db_host if host.blank?
       "#{host} (host), #{db_host} (db_host)"
     end
+    
+    def count_to_s(data = {})
+      return "--" if count.nil?
+      if data[:format] == :short_hand
+        lookups = { 1000.0 => 'thousand', 1000000.0 => 'million', 1000000000.0 => 'billion', 1000000000000.0 => 'trillion' }
+        lookups.keys.sort.reverse.each do |v|
+          next if v > count
+          short_hand = (count / v * 10).round / 10.0
+          short_hand = short_hand.round if short_hand.round == short_hand
+          return "#{add_commas(short_hand)} #{lookups[v]}"
+        end
+      end
+      add_commas(count)
+    end
 
     def ==(o)
        o.class == self.class && o.send(:state) == state
@@ -52,6 +66,10 @@ module Appstats
     alias_method :eql?, :==
 
     private
+
+      def add_commas(num)
+        num.to_s.gsub(/(\d)(?=\d{3}+(\.\d*)?$)/, '\1,')
+      end
 
       def state
         [name, result_type, query, query_to_sql, count, action, host, from_date, to_date,contexts,group_by,query_type,db_username,db_name,db_host]
