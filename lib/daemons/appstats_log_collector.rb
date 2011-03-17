@@ -26,25 +26,28 @@ unless File.exists?(options[:config])
   exit(1)
 end
 
-appstats_config = YAML::load(File.open(options[:config]))
-ActiveRecord::Base.establish_connection(appstats_config['database'])
+Appstats.log(:info,"Started Appstats Log Collector")
 require File.join(File.dirname(__FILE__),"..","appstats")
 last_processed_at = nil
-Appstats.log(:info,"Started Appstats Log Collector")
-
-if appstats_config['downloaded_log_directory'].nil?
-  Appstats.log(:info,"Logs will be downloaded to default directory (downloaded_log_directory in config file to overwrite")
-else
-  Appstats::LogCollector.downloaded_log_directory = appstats_config['downloaded_log_directory']
-  Appstats.log(:info,"Logs will be downloaded to #{Appstats::LogCollector.downloaded_log_directory}")
-end
 
 while($running) do
+
+  appstats_config = YAML::load(File.open(options[:config]))
+  ActiveRecord::Base.establish_connection(appstats_config['database'])
+
   unless Appstats::LogCollector.should_process(last_processed_at)
     an_hour = 60*60
     sleep an_hour
     next
   end
+
+  if appstats_config['downloaded_log_directory'].nil?
+    Appstats.log(:info,"Logs will be downloaded to default directory (downloaded_log_directory in config file to overwrite")
+  else
+    Appstats::LogCollector.downloaded_log_directory = appstats_config['downloaded_log_directory']
+    Appstats.log(:info,"Logs will be downloaded to #{Appstats::LogCollector.downloaded_log_directory}")
+  end
+
   last_processed_at = Time.now
   ActiveRecord::Base.connection.reconnect!
   appstats_config["remote_servers"].each do |remote_server|
