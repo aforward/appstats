@@ -55,6 +55,8 @@ while($running) do
   end
   Appstats::LogCollector.download_remote_files(appstats_config["remote_servers"])
   Appstats::LogCollector.process_local_files
+
+  Appstats::ResultJob.require_third_party_queries(appstats_config["third_party_queries"])
   Appstats::ResultJob.run
 
   Appstats::Action.update_actions
