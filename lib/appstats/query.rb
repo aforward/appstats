@@ -163,8 +163,9 @@ module Appstats
       def run_query
         begin
           results = yield db_connection
+          db_config = ActiveRecord::Base.connection.instance_variable_get(:@config)
           restore_connection
-          { :results => results, :db_config => ActiveRecord::Base.connection.instance_variable_get(:@config) }
+          data = { :results => results, :db_config => db_config }
         rescue Exception => e
           restore_connection
           Appstats.log(:error,"Something bad occurred during Appstats::#{query_type}#run_query")

@@ -311,6 +311,12 @@ module Appstats
           result.query_to_sql.should == "select count(*) as num from appstats_test_objects"
         end
 
+        it "should track db connection on custom sql" do
+          query = Query.new(:query => "# x on otherServer", :query_type => "Appstats::TestQuery")
+          result = query.run
+          [result.db_username,result.db_name,result.db_host].should == ['root','appstats_development','localhost']
+        end
+
         it "should handle group by errors" do
           query = Query.new(:query => "# x group by y", :query_type => "Appstats::BadGroupTestQuery")
           result = query.run
