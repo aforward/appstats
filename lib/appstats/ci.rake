@@ -3,9 +3,8 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
     desc "Perform a build on the CI server"
     task :build => ['config', 'create_logs']  do
       begin
-        Rake::Task['appstats:install:migrations'].invoke
-        Rake::Task['db:migrate'].invoke
-        Rake::Task['db:test:prepare'].invoke
+        Rake::Task['ci:db_setup'].invoke
+        # Rake::Task['db:test:prepare'].invoke
         Rake::Task['spec'].invoke
         Rake::Task['metrics:all'].invoke
         Rake::Task['ci:success'].invoke
@@ -13,6 +12,12 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
         Rake::Task['ci:failure'].invoke
         raise e
       end
+    end
+
+    # Creates a second database for testing the multi db access
+    task :db_setup => ['config','create_logs'] do
+      Rake::Task['appstats:install:migrations'].invoke
+      Rake::Task['db:migrate'].invoke
     end
 
     desc "Setup the correct database configuration files"
