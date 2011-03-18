@@ -3,8 +3,10 @@ module Appstats
     set_table_name "appstats_results"
 
     attr_accessible :name, :result_type, :query, :query_to_sql, :count, :action, :host, :from_date, :to_date, :contexts, :group_by, :query_type, 
-      :db_username, :db_name, :db_host
+      :db_username, :db_name, :db_host, :is_latest
     has_many :sub_results, :table_name => 'appstats_subresults', :foreign_key => 'appstats_result_id', :order => 'count DESC'
+
+    after_save :update_is_latest
 
     def date_to_s
       return "" if from_date.nil? && to_date.nil?
@@ -65,7 +67,27 @@ module Appstats
     end
     alias_method :eql?, :==
 
+    def self.fix_all_is_latest
+      ActiveRecord::Base.connection.update('update appstats_results set is_latest = false')
+      all = ActiveRecord::Base.connection.select_all("select concat(id,' ',max(updated_at)) as id_and_date from appstats_results group by query")
+      return if all.empty?
+      ids = all.each.collect { |e| e["id_and_date"].split[0] }.compact
+      ActiveRecord::Base.connection.update("update appstats_results set is_latest = '1' where id in (#{ids.join(',')})")
+    end
+
     private
+
+      def update_is_latest
+        sql = ["update appstats_results set is_latest = false where query = ?",query]
+        ActiveRecord::Base.connection.update(ActiveRecord::Base.send(:sanitize_sql_array, sql))
+        
+        sql = ["select id from appstats_results where query = ? order by updated_at DESC",query]
+        first = ActiveRecord::Base.connection.select_one(ActiveRecord::Base.send(:sanitize_sql_array, sql))
+        return if first.nil?
+        
+        sql = ["update appstats_results set is_latest = '1' where id = ?",first["id"]]
+        ActiveRecord::Base.connection.update(ActiveRecord::Base.send(:sanitize_sql_array, sql))
+      end
 
       def add_commas(num)
         num.to_s.gsub(/(\d)(?=\d{3}+(\.\d*)?$)/, '\1,')

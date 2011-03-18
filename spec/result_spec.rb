@@ -25,10 +25,12 @@ module Appstats
         @result.db_username.should == nil
         @result.db_name.should == nil
         @result.db_host.should == nil
+        @result.is_latest.should == nil
+        @result.is_latest?.should == false
       end
     
       it "should set on constructor" do
-        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_to_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"), :group_by => "a,b", :query_type => 'h', :db_username => 'i', :db_name => 'j', :db_host => 'k')
+        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_to_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"), :group_by => "a,b", :query_type => 'h', :db_username => 'i', :db_name => 'j', :db_host => 'k', :is_latest => true)
         result.name.should == 'a'
         result.result_type.should == 'b'
         result.query.should == 'c'
@@ -44,6 +46,8 @@ module Appstats
         result.db_username.should == "i"
         result.db_name.should == "j"
         result.db_host.should == "k"
+        result.is_latest?.should == true
+        result.is_latest.should == true
       end
     
     end
@@ -184,6 +188,59 @@ module Appstats
         @result.reload
 
         @result.sub_results.should == [sub3,sub2,sub1]
+      end
+      
+    end
+    
+    describe "#after_save" do
+      
+      before(:each) do
+        Appstats::Result.delete_all
+      end
+
+      it "should only fix yourself" do
+        Time.stub!(:now).and_return(Time.parse('2011-09-21 23:15:20'))
+        new_result = Appstats::Result.create(:query => '# x')
+        another_new_result = Appstats::Result.create(:query => '# y')
+        Time.stub!(:now).and_return(Time.parse('2010-09-21 23:15:20'))
+        another_old_result = Appstats::Result.create(:query => '# y')
+        ActiveRecord::Base.connection.update('update appstats_results set is_latest = null')
+
+        old_result = Appstats::Result.create(:query => '# x')
+        
+        new_result.reload and old_result.reload and another_new_result.reload and another_old_result.reload
+        new_result.is_latest?.should == true
+        old_result.is_latest?.should == false
+        another_new_result.is_latest?.should == false
+        another_old_result.is_latest?.should == false
+      end
+      
+    end
+    
+    describe "#fix_all_is_latest" do
+      
+      before(:each) do
+        Appstats::Result.delete_all
+      end
+      
+      it "should work for no results" do
+        Appstats::Result.fix_all_is_latest
+      end
+      
+      it "should fix all resutls" do
+        Time.stub!(:now).and_return(Time.parse('2011-09-21 23:15:20'))
+        new_result = Appstats::Result.create(:query => '# x')
+        Time.stub!(:now).and_return(Time.parse('2010-09-21 23:15:20'))
+        old_result = Appstats::Result.create(:query => '# x')
+        another_result = Appstats::Result.create(:query => '# y')
+        ActiveRecord::Base.connection.update('update appstats_results set is_latest = null')
+        
+        Appstats::Result.fix_all_is_latest
+        
+        new_result.reload and old_result.reload and another_result.reload
+        new_result.is_latest?.should == true
+        old_result.is_latest?.should == false
+        another_result.is_latest?.should == true
       end
       
     end

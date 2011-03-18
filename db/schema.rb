@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110311214833) do
+ActiveRecord::Schema.define(:version => 20110318203339) do
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"
@@ -125,10 +125,12 @@ ActiveRecord::Schema.define(:version => 20110311214833) do
     t.string   "db_username"
     t.string   "db_name"
     t.string   "db_host"
+    t.boolean  "is_latest"
   end
 
   add_index "appstats_results", ["action"], :name => "index_appstats_results_on_action"
   add_index "appstats_results", ["host"], :name => "index_appstats_results_on_host"
+  add_index "appstats_results", ["is_latest"], :name => "index_appstats_results_on_is_latest"
   add_index "appstats_results", ["name"], :name => "index_appstats_results_on_name"
   add_index "appstats_results", ["page"], :name => "index_appstats_results_on_page"
 
