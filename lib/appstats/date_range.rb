@@ -149,6 +149,14 @@ module Appstats
         return range
       end
 
+      m = input.match(/^(.+)\s*(year|years|quarter|quarters|month|months|week|weeks|day|days)\s*ago$/)
+      unless m.nil?
+        range.from = EntryDate.parse(input)
+        range.format = :fixed_point
+        return range
+      end
+
+
       m = input.match(/^previous\s*(.+)\s*(year|quarter|month|week|day)s?$/)
       unless m.nil?
         range.from = EntryDate.parse(input)

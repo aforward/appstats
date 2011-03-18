@@ -147,6 +147,40 @@ module Appstats
                 
       end
 
+      describe "X (year|quarter|month|week|day)s ago" do
+
+        it "should understand last X years" do
+          DateRange.parse("  1 year ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2009), :to => nil, :format => :fixed_point )
+          DateRange.parse("  2 years ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2008), :to => nil, :format => :fixed_point )
+          DateRange.parse("  3 years ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2007), :to => nil, :format => :fixed_point )
+        end
+
+        it "should understand last X quarters" do
+          DateRange.parse("  1 quarter ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10, :quarter => 4), :to => nil, :format => :fixed_point )
+          DateRange.parse("  2 quarters ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 7, :quarter => 3), :to => nil, :format => :fixed_point )
+          DateRange.parse("  3 quarters ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 4, :quarter => 2), :to => nil, :format => :fixed_point )
+        end
+
+        it "should understand last X months" do
+          DateRange.parse("  1 month ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 12), :to => nil, :format => :fixed_point )
+          DateRange.parse("  2 months ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 11), :to => nil, :format => :fixed_point )
+          DateRange.parse("  3 months ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 10), :to => nil, :format => :fixed_point )
+        end
+
+        it "should understand last X weeks" do
+          DateRange.parse("  1 week ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1), :to => nil, :format => :fixed_point )
+          DateRange.parse("  2 weeks ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 12, :day => 28, :week => 52), :to => nil, :format => :fixed_point )
+          DateRange.parse("  3 weeks ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2009, :month => 12, :day => 21, :week => 51), :to => nil, :format => :fixed_point )
+        end
+
+        it "should understand last X days" do
+          DateRange.parse("  1 day ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 14), :to => nil, :format => :fixed_point )
+          DateRange.parse("  2 days ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 13), :to => nil, :format => :fixed_point )
+          DateRange.parse("  3 days ago  ").should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 1, :day => 12), :to => nil, :format => :fixed_point )
+        end
+
+      end
+
       describe "last X (year|quarter|month|week|day)s" do
         
         it "should understand last X years" do

@@ -154,6 +154,37 @@ module Appstats
         t_parts = [:year,:month,:day]
       end
 
+      m = input.match(/^(\d*)\s*years?\s*ago/)
+      if m
+        t -= ago_date_offset(m).year
+        t_parts = [:year]
+      end
+
+      m = input.match(/^(\d*)\s*quarters?\s*ago/)
+      if m
+        t = t.beginning_of_quarter
+        ago_date_offset(m).times { t = (t - 1.day).beginning_of_quarter }
+        t_parts = [:year,:month,:quarter]
+      end
+
+      m = input.match(/^(\d*)\s*months?\s*ago/)
+      if m
+        t -= ago_date_offset(m).month
+        t_parts = [:year,:month]
+      end
+
+      m = input.match(/^(\d*)\s*weeks?\s*ago/)
+      if m
+        t = (t - ago_date_offset(m).week).beginning_of_week
+        t_parts = [:year,:month,:day,:week]
+      end
+
+      m = input.match(/^(\d*)\s*days?\s*ago/)
+      if m
+        t -= ago_date_offset(m).day
+        t_parts = [:year,:month,:day]
+      end
+
       unless t_parts.nil?
         t_parts.each do |label|
           if [:quarter,:week].include?(label)
@@ -190,6 +221,11 @@ module Appstats
         offset = match[1] == "last" ? -1 : 0
         amount = match[2] == "" ? 1 : match[2].to_i + offset
         amount
+      end
+      
+      # (\d*) (year|month|...) ago
+      def self.ago_date_offset(match)
+        match[1].to_i
       end
   
   end

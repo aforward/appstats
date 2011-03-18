@@ -369,6 +369,40 @@ module Appstats
         EntryDate.parse("previous 3 days").should == EntryDate.new(:year => 2010, :month => 1, :day => 12)
       end
 
+      describe "X (year|quarter|month|week|day)s ago" do
+
+        it "should understand last X years" do
+          EntryDate.parse("  1 year ago  ").should == EntryDate.new(:year => 2009)
+          EntryDate.parse("  2 years ago  ").should == EntryDate.new(:year => 2008)
+          EntryDate.parse("  3 years ago  ").should == EntryDate.new(:year => 2007)
+        end
+
+        it "should understand last X quarters" do
+          EntryDate.parse("  1 quarter ago  ").should == EntryDate.new(:year => 2009, :month => 10, :quarter => 4)
+          EntryDate.parse("  2 quarters ago  ").should == EntryDate.new(:year => 2009, :month => 7, :quarter => 3)
+          EntryDate.parse("  3 quarters ago  ").should == EntryDate.new(:year => 2009, :month => 4, :quarter => 2)
+        end
+
+        it "should understand last X months" do
+          EntryDate.parse("  1 month ago  ").should == EntryDate.new(:year => 2009, :month => 12)
+          EntryDate.parse("  2 months ago  ").should == EntryDate.new(:year => 2009, :month => 11)
+          EntryDate.parse("  3 months ago  ").should == EntryDate.new(:year => 2009, :month => 10)
+        end
+
+        it "should understand last X weeks" do
+          EntryDate.parse("  1 week ago  ").should == EntryDate.new(:year => 2010, :month => 1, :day => 4, :week => 1)
+          EntryDate.parse("  2 weeks ago  ").should == EntryDate.new(:year => 2009, :month => 12, :day => 28, :week => 52)
+          EntryDate.parse("  3 weeks ago  ").should == EntryDate.new(:year => 2009, :month => 12, :day => 21, :week => 51)
+        end
+
+        it "should understand last X days" do
+          EntryDate.parse("  1 day ago  ").should == EntryDate.new(:year => 2010, :month => 1, :day => 14)
+          EntryDate.parse("  2 days ago  ").should == EntryDate.new(:year => 2010, :month => 1, :day => 13)
+          EntryDate.parse("  3 days ago  ").should == EntryDate.new(:year => 2010, :month => 1, :day => 12)
+        end
+
+      end
+
       it "should accept garbage input" do
         EntryDate.parse("1234asdf1234 1234fds123").should == EntryDate.new
       end
