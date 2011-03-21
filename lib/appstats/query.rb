@@ -47,6 +47,7 @@ module Appstats
       data = run_query { |conn| conn.select_one(@query_to_sql)["num"].to_i }
       unless data.nil?
         result.count = data[:results]
+        result.query_duration_in_seconds = data[:duration]
         result.db_username = data[:db_config][:username]
         result.db_name = data[:db_config][:database]
         result.db_host = data[:db_config][:host]
@@ -55,6 +56,7 @@ module Appstats
 
       unless @group_by.empty?
         data = run_query { |conn| conn.select_all(@group_query_to_sql) }
+        result.group_query_duration_in_seconds = data[:duration] unless data.nil?
         all_sub_results = data.nil? ? [] : data[:results]
         all_sub_results.each do |data|
           if data["context_key_filter"].nil? || data["context_value_filter"].nil? || data["num"].nil?
@@ -70,6 +72,7 @@ module Appstats
           sub_result.result = result
           sub_result.save
         end
+        result.save
       end
       result.reload
       result
@@ -162,10 +165,12 @@ module Appstats
     
       def run_query
         begin
+          timer = FriendlyTimer.new
           results = yield db_connection
+          timer.stop
           db_config = ActiveRecord::Base.connection.instance_variable_get(:@config)
           restore_connection
-          data = { :results => results, :db_config => db_config }
+          data = { :results => results, :db_config => db_config, :duration => timer.duration }
         rescue Exception => e
           restore_connection
           Appstats.log(:error,"Something bad occurred during Appstats::#{query_type}#run_query")

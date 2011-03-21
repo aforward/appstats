@@ -27,10 +27,12 @@ module Appstats
         @result.db_host.should == nil
         @result.is_latest.should == nil
         @result.is_latest?.should == false
+        @result.query_duration_in_seconds.should == nil
+        @result.group_query_duration_in_seconds.should == nil
       end
     
       it "should set on constructor" do
-        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_to_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"), :group_by => "a,b", :query_type => 'h', :db_username => 'i', :db_name => 'j', :db_host => 'k', :is_latest => true)
+        result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_to_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"), :group_by => "a,b", :query_type => 'h', :db_username => 'i', :db_name => 'j', :db_host => 'k', :is_latest => true, :query_duration_in_seconds => 1.2, :group_query_duration_in_seconds => 3.4)
         result.name.should == 'a'
         result.result_type.should == 'b'
         result.query.should == 'c'
@@ -48,6 +50,8 @@ module Appstats
         result.db_host.should == "k"
         result.is_latest?.should == true
         result.is_latest.should == true
+        result.query_duration_in_seconds = 1.2
+        result.group_query_duration_in_seconds = 3.4
       end
     
     end
@@ -58,6 +62,18 @@ module Appstats
         result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_to_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"), :group_by => "a,b", :query_type => 'h', :db_username => 'i', :db_name => 'j', :db_host => 'k')
         same_result = Appstats::Result.new(:name => 'a', :result_type => 'b', :query => 'c', :query_to_sql => 'd', :count => 10, :action => 'e', :host => 'f', :contexts => 'g', :from_date => Time.parse("2010-01-02"), :to_date => Time.parse("2010-02-03"), :group_by => "a,b", :query_type => 'h', :db_username => 'i', :db_name => 'j', :db_host => 'k')
         (result == same_result).should == true
+      end
+      
+      it "should ignore query_duration_in_seconds" do
+        result = Appstats::Result.new(:query_duration_in_seconds => 1.2)
+        result2 = Appstats::Result.new(:query_duration_in_seconds => 3.4)
+        result.should == result2
+      end
+
+      it "should ignore group_query_duration_in_seconds" do
+        result = Appstats::Result.new(:group_query_duration_in_seconds => 1.2)
+        result2 = Appstats::Result.new(:group_query_duration_in_seconds => 3.4)
+        result.should == result2
       end
       
       it "should be not equal if diferent attributes" do
@@ -77,6 +93,35 @@ module Appstats
       end
 
     end
+    
+    describe "#query_duration_to_s" do
+      
+      it "should be friendly" do
+        @result.query_duration_in_seconds = 10
+        @result.query_duration_to_s.should == "10 seconds"
+      end
+
+      it "should support nil" do
+        @result.query_duration_in_seconds = nil
+        @result.query_duration_to_s.should == "N/A"
+      end
+      
+    end
+
+    describe "#group_query_duration_to_s" do
+      
+      it "should be friendly" do
+        @result.group_query_duration_in_seconds = 10
+        @result.group_query_duration_to_s.should == "10 seconds"
+      end
+
+      it "should support nil" do
+        @result.group_query_duration_in_seconds = nil
+        @result.group_query_duration_to_s.should == "N/A"
+      end
+      
+    end
+
     
     describe "#host_to_s" do
       

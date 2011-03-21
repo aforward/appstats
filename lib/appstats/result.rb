@@ -2,10 +2,12 @@ module Appstats
   class Result < ActiveRecord::Base
     set_table_name "appstats_results"
 
-    attr_accessible :name, :result_type, :query, :query_to_sql, :count, :action, :host, :from_date, :to_date, :contexts, :group_by, :query_type, 
+    attr_accessible :name, :result_type, 
+      :query, :query_to_sql, :count, :query_type, :query_duration_in_seconds, :group_query_duration_in_seconds,
+      :action, :host, :from_date, :to_date, :contexts, :group_by,  
       :db_username, :db_name, :db_host, :is_latest
-    has_many :sub_results, :table_name => 'appstats_subresults', :foreign_key => 'appstats_result_id', :order => 'count DESC'
 
+    has_many :sub_results, :table_name => 'appstats_subresults', :foreign_key => 'appstats_result_id', :order => 'count DESC'
     after_save :update_is_latest
 
     def date_to_s
@@ -46,6 +48,14 @@ module Appstats
       return host if (db_host.blank? || host == db_host)
       return db_host if host.blank?
       "#{host} (host), #{db_host} (db_host)"
+    end
+    
+    def query_duration_to_s
+      FriendlyTimer.calculate_duration_to_s(query_duration_in_seconds)
+    end
+    
+    def group_query_duration_to_s
+      FriendlyTimer.calculate_duration_to_s(group_query_duration_in_seconds)
     end
     
     def count_to_s(data = {})
