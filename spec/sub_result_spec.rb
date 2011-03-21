@@ -81,5 +81,98 @@ module Appstats
       
     end
     
+    describe "#count_to_s" do
+
+      it "should handle nil" do
+        @sub_result.count = nil
+        @sub_result.count_to_s.should == '--'
+      end
+
+      it "should handle 0" do
+        @sub_result.count = 0
+        @sub_result.count_to_s.should == '0'
+      end
+
+      it "should handle < 1000 numbers" do
+        @sub_result.count = 123
+        @sub_result.count_to_s.should == "123"
+      end
+
+      it "should handle > 1000 numbers" do
+        @sub_result.count = 1000
+        @sub_result.count_to_s.should == "1,000"
+
+        @sub_result.count = 12345
+        @sub_result.count_to_s.should == "12,345"
+
+      end
+
+      it "should handle > 1000000 numbers" do
+        @sub_result.count = 1000000
+        @sub_result.count_to_s.should == "1,000,000"
+
+        @sub_result.count = 1234567
+        @sub_result.count_to_s.should == "1,234,567"
+      end
+
+      describe "short_hand format" do
+
+
+        it "should handle trillion" do
+          @sub_result.count = 1400000000000
+          @sub_result.count_to_s(:format => :short_hand).should == "1.4 trillion"
+        end
+
+        it "should handle billion" do
+          @sub_result.count = 1490000000
+          @sub_result.count_to_s(:format => :short_hand).should == "1.5 billion"
+
+          @sub_result.count = 91490000000
+          @sub_result.count_to_s(:format => :short_hand).should == "91.5 billion"
+
+        end
+
+        it "should handle million" do
+          @sub_result.count = 1200000
+          @sub_result.count_to_s(:format => :short_hand).should == "1.2 million"
+
+          @sub_result.count = 881200000
+          @sub_result.count_to_s(:format => :short_hand).should == "881.2 million"
+        end
+
+        it "should handle thousand" do
+          @sub_result.count = 1200
+          @sub_result.count_to_s(:format => :short_hand).should == "1.2 thousand"
+
+          @sub_result.count = 912600
+          @sub_result.count_to_s(:format => :short_hand).should == "912.6 thousand"
+
+        end
+
+        it "should not display decimal if 0" do
+          @sub_result.count = 1000
+          @sub_result.count_to_s(:format => :short_hand).should == "1 thousand"
+
+          @sub_result.count = 912000
+          @sub_result.count_to_s(:format => :short_hand).should == "912 thousand"
+
+        end
+      end
+    end    
+
+    describe "#total_count_to_s" do
+      
+      it "should be zero if no result" do
+        @sub_result.total_count_to_s.should == "0"
+      end
+      
+      it "should be based on result.count" do
+        @sub_result.result = Result.create(:count => 1000)
+        @sub_result.total_count_to_s.should == "1,000"
+      end
+      
+    end
+    
+    
   end
 end

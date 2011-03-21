@@ -59,17 +59,7 @@ module Appstats
     end
     
     def count_to_s(data = {})
-      return "--" if count.nil?
-      if data[:format] == :short_hand
-        lookups = { 1000.0 => 'thousand', 1000000.0 => 'million', 1000000000.0 => 'billion', 1000000000000.0 => 'trillion' }
-        lookups.keys.sort.reverse.each do |v|
-          next if v > count
-          short_hand = (count / v * 10).round / 10.0
-          short_hand = short_hand.round if short_hand.round == short_hand
-          return "#{add_commas(short_hand)} #{lookups[v]}"
-        end
-      end
-      add_commas(count)
+      Appstats::Result.calculate_count_to_s(count,data)
     end
 
     def ==(o)
@@ -83,6 +73,20 @@ module Appstats
       return if all.empty?
       ids = all.each.collect { |e| e["id_and_date"].split[0] }.compact
       ActiveRecord::Base.connection.update("update appstats_results set is_latest = '1' where id in (#{ids.join(',')})")
+    end
+    
+    def self.calculate_count_to_s(raw_count,data = {})
+      return "--" if raw_count.nil?
+      if data[:format] == :short_hand
+        lookups = { 1000.0 => 'thousand', 1000000.0 => 'million', 1000000000.0 => 'billion', 1000000000000.0 => 'trillion' }
+        lookups.keys.sort.reverse.each do |v|
+          next if v > raw_count
+          short_hand = (raw_count / v * 10).round / 10.0
+          short_hand = short_hand.round if short_hand.round == short_hand
+          return "#{add_commas(short_hand)} #{lookups[v]}"
+        end
+      end
+      add_commas(raw_count)
     end
 
     private
@@ -99,7 +103,7 @@ module Appstats
         ActiveRecord::Base.connection.update(ActiveRecord::Base.send(:sanitize_sql_array, sql))
       end
 
-      def add_commas(num)
+      def self.add_commas(num)
         num.to_s.gsub(/(\d)(?=\d{3}+(\.\d*)?$)/, '\1,')
       end
 

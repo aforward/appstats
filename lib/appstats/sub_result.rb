@@ -10,6 +10,15 @@ module Appstats
       result.count
     end
 
+    def count_to_s(data = {})
+      Appstats::Result.calculate_count_to_s(count,data)
+    end
+
+    def total_count_to_s(data = {})
+      Appstats::Result.calculate_count_to_s(total_count,data)
+    end
+
+
     def ==(o)
        o.class == self.class && o.send(:state) == state
     end

@@ -366,10 +366,7 @@ module Appstats
           @result.count_to_s(:format => :short_hand).should == "912 thousand"
 
         end
-
       end
-      
-      
     end
     
   end
