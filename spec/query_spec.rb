@@ -373,6 +373,8 @@ module Appstats
         end
     
         it "should handle group by errors" do
+          TestObject.create and TestObject.create
+          
           query = Query.new(:query => "# x group by y", :query_type => "Appstats::BadGroupTestQuery")
           result = query.run
           result.query_type.should == "Appstats::BadGroupTestQuery"
