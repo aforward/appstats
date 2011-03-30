@@ -266,6 +266,7 @@ module Appstats
         
         before(:each) do
           Appstats::Entry.delete_all
+          Appstats::Context.delete_all
         end
         
         it "should not create sub results if no group_by" do
