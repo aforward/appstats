@@ -80,7 +80,7 @@ module Appstats
           sub_result.result = result
           sub_result.save
         end
-
+        
         if running_total < result.count
           remaining_total = result.count - running_total
           ratio_of_total = remaining_total.to_f / result.count

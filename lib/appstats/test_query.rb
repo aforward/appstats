@@ -29,8 +29,7 @@ module Appstats
     end
     
     def db_connection
-      dbconfig = YAML::load(File.open('db/config.yml'))
-      ActiveRecord::Base.establish_connection(dbconfig['development']).connection
+      ActiveRecord::Base.connection
     end
     
   end
@@ -45,8 +44,7 @@ module Appstats
     end
     
     def db_connection
-      dbconfig = YAML::load(File.open('db/config.yml'))
-      ActiveRecord::Base.establish_connection(dbconfig['development']).connection
+      ActiveRecord::Base.connection
     end
     
   end
