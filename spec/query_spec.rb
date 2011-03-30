@@ -371,6 +371,16 @@ module Appstats
           result = query.run
           [result.db_username,result.db_name,result.db_host].should == ['root','appstats_development','localhost']
         end
+
+        it "should handle group by when core search has errors errors" do
+          TestObject.create and TestObject.create
+          
+          query = Query.new(:query => "# x group by y", :query_type => "Appstats::BadTestQuery")
+          result = query.run
+          result.query_type.should == "Appstats::BadTestQuery"
+          result.sub_results.should == [ ]
+        end
+    
     
         it "should handle group by errors" do
           TestObject.create and TestObject.create

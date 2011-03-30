@@ -54,7 +54,7 @@ module Appstats
       end
       result.save
 
-      unless @group_by.empty?
+      if !@group_by.empty? && !result.count.nil?
         running_total = 0
         data = run_query { |conn| conn.select_all(@group_query_to_sql) }
         result.group_query_duration_in_seconds = data[:duration] unless data.nil?
