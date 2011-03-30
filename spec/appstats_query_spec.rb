@@ -90,7 +90,6 @@ module Appstats
         @appstats_query.run.should == "call-worked"
       end
         
-      # THIS IS A SLOW TEST ONLY TO BE RUN IF THINGS START ACTING STRANGE
       it "should actually execute code properly" do
         Result.create
         @appstats_query.query = Appstats::Query.new(:query => "# appstats_queries", :query_type => "Appstats::AppstatsQuery")
@@ -128,6 +127,19 @@ module Appstats
       #   end
         
       end
+      
+      describe "# booms" do
+
+        it "should return nil results" do
+          @appstats_query.query = Appstats::Query.new(:query => "# booms", :query_type => "Appstats::AppstatsQuery")
+          @appstats_query.process_query
+          @appstats_query.query_to_sql.should == "invalid sql"
+          @appstats_query.group_query_to_sql.should == nil
+          @appstats_query.run.count.should == nil
+        end
+        
+      end
+      
     end
   
     describe "#db_connection" do

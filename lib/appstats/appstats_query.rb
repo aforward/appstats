@@ -9,7 +9,7 @@ module Appstats
     @@action_to_available_contexts = 
     {
       "appstats_queries" => [ "action", "contexts", "group_by" ],
-      "bomb" => []
+      "booms" => []
     }
   
     def query_to_sql
@@ -33,7 +33,7 @@ module Appstats
         when "appstats_queries"
           count_filter = "COUNT(*)"
           query.query_to_sql = "select #{count_filter} as num from appstats_results#{build_where_clause}"
-        when "bombs"
+        when "booms"
           query.query_to_sql = "invalid sql"
       end
       query.group_query_to_sql = query.query_to_sql.sub("#{count_filter} as num","#{context_key_filter_name(action)} as context_key_filter, #{context_value_filter_name(action)} as context_value_filter, COUNT(*) as num") + " group by context_value_filter" unless query.group_by.empty?
