@@ -10,7 +10,15 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110321154125) do
+ActiveRecord::Schema.define(:version => 20110330171745) do
+
+  create_table "appstats_action_context_keys", :force => true do |t|
+    t.string   "action_name"
+    t.string   "context_key"
+    t.string   "status"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "appstats_actions", :force => true do |t|
     t.string   "name"

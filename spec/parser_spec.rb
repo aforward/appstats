@@ -8,153 +8,153 @@ module Appstats
     end
      
     describe("#initialize") do
-      
-      it "should set rules to nil" do
-        @parser.raw_rules.should == nil
-        @parser.raw_tokenize.should == nil
-        @parser.repeating.should == false
-        @parser.tokenize_regex == nil
-        @parser.rules.should == []
-        @parser.tokenize.should == []
-        @parser.constants.should == []
-        @parser.constants_no_spaces.should == []
-      end
-      
-      it "should set rules from constructor" do
-        parser = Parser.new(:rules => ":name or :bust", :tokenize => "a bb c", :repeating => true)
-        parser.raw_rules.should == ":name or :bust"
-        parser.raw_tokenize.should == "a bb c"
-        parser.repeating.should == true
-        parser.rules.should == [ { :rule => :name, :stop => :constant }, "OR", { :rule => :bust, :stop => :end} ]
-        parser.tokenize.should == ["\\s+A","\\s+BB","\\s+C"]
-        parser.tokenize_no_spaces.should == ["A","BB","C"]
-        parser.constants.should == ["\\s+OR"]
-        parser.constants_no_spaces.should == ["OR"]
-      end
-    
-      it "should espace tokens as required" do
-        parser = Parser.new(:tokenize => "( ) abc |")
-        parser.tokenize.should == ['\(','\)','\s+ABC','\|']
-        parser.tokenize_regex.should == '\(|\)|\s+ABC|\|'
-        parser.tokenize_no_spaces.should == ['\(','\)','ABC','\|']
-        parser.tokenize_regex_no_spaces.should == '\(|\)|ABC|\|'
-      end
-    
-    end
+       
+       it "should set rules to nil" do
+         @parser.raw_rules.should == nil
+         @parser.raw_tokenize.should == nil
+         @parser.repeating.should == false
+         @parser.tokenize_regex == nil
+         @parser.rules.should == []
+         @parser.tokenize.should == []
+         @parser.constants.should == []
+         @parser.constants_no_spaces.should == []
+       end
+       
+       it "should set rules from constructor" do
+         parser = Parser.new(:rules => ":name or :bust", :tokenize => "a bb c", :repeating => true)
+         parser.raw_rules.should == ":name or :bust"
+         parser.raw_tokenize.should == "a bb c"
+         parser.repeating.should == true
+         parser.rules.should == [ { :rule => :name, :stop => :constant }, "OR", { :rule => :bust, :stop => :end} ]
+         parser.tokenize.should == ["\\s+A(\\s|$)","\\s+BB(\\s|$)","\\s+C(\\s|$)"]
+         parser.tokenize_no_spaces.should == ["A","BB","C"]
+         parser.constants.should == ["\\s+OR(\\s|$)"]
+         parser.constants_no_spaces.should == ["OR"]
+       end
      
+       it "should espace tokens as required" do
+         parser = Parser.new(:tokenize => "( ) abc |")
+         parser.tokenize.should == ['\(','\)','\s+ABC(\s|$)','\|']
+         parser.tokenize_regex.should == '\(|\)|\s+ABC(\s|$)|\|'
+         parser.tokenize_no_spaces.should == ['\(','\)','ABC','\|']
+         parser.tokenize_regex_no_spaces.should == '\(|\)|ABC|\|'
+       end
      
-    describe "#rules" do
-    
-      it "should end on constant if tokens present" do
-        Parser.new(:rules => ":name", :tokenize => ")").rules.should == [ { :rule => :name, :stop => :end } ]
-      end
-    
+     end
       
-      it "should handle one variable" do
-        Parser.new(:rules => ":name").rules.should == [ { :rule => :name, :stop => :end } ]
-      end
-    
-      it "should handle many variables" do
-        Parser.new(:rules => ":name :date").rules.should == [ { :rule => :name, :stop => :space }, { :rule => :date, :stop => :end } ]
-      end
-    
-      it "should deal with colons" do
-        Parser.new(:rules => ":name : :date").rules.should == [ { :rule => :name, :stop => :constant }, ":", { :rule => :date, :stop => :end } ]
-      end
-    
-      it "should deal with constant" do
-        Parser.new(:rules => "blah").rules.should == ["BLAH"]
-      end
-    
-      it "should deal with constant and variables" do
-        Parser.new(:rules => ":name blah :date").rules.should == [ { :rule => :name, :stop => :constant }, "BLAH", { :rule => :date, :stop => :end } ]
-      end
-    
-      it "should deal with multiple constants and variables" do
-        Parser.new(:rules => ":name blah more blah :date").rules.should == [ { :rule => :name, :stop => :constant }, "BLAH", "MORE", "BLAH", { :rule => :date, :stop => :end } ]
-      end
       
-    end
+     describe "#rules" do
      
-    describe "#constants" do
-      
-      it "should be empty if only variables" do
-        Parser.new(:rules => ":name :blah").constants.should == [ ]
-      end
-    
-      it "should track all constants" do
-        Parser.new(:rules => ":name : :date").constants.should == [ ":" ]
-      end
-    
-      it "should upper case constants" do
-        Parser.new(:rules => "blah").constants.should == ["\\s+BLAH"]
-      end
-    
-      it "should deal with multiple constants" do
-        Parser.new(:rules => ":name = :blah and :moreblah").constants.should == ["=","\\s+AND"]
-      end
-    
-    end
-    
-    describe "#constants_no_spaces" do
-      
-      it "should be empty if only variables" do
-        Parser.new(:rules => ":name :blah").constants_no_spaces.should == [ ]
-      end
-    
-      it "should track all constants" do
-        Parser.new(:rules => ":name : :date").constants_no_spaces.should == [ ":" ]
-      end
-    
-      it "should upper case constants" do
-        Parser.new(:rules => "blah").constants_no_spaces.should == ["BLAH"]
-      end
-    
-      it "should deal with multiple constants" do
-        Parser.new(:rules => ":name = :blah and :moreblah").constants_no_spaces.should == ["=","AND"]
-      end
-    
-    end    
+       it "should end on constant if tokens present" do
+         Parser.new(:rules => ":name", :tokenize => ")").rules.should == [ { :rule => :name, :stop => :end } ]
+       end
      
-    describe "#parse_constant" do
-    
-      it "should handle nil" do
-        Parser.parse_constant(nil,nil).should == [nil,nil]
-        Parser.parse_constant("",nil).should == [nil,nil]
-      end
-    
-      it "should find the constant" do
-        Parser.parse_constant("= blah blah more blah ","=").should == ["=","blah blah more blah"]
-      end
-    
-      it "should find the constants with multiple characters" do
-        Parser.parse_constant("hey blah blah more blah ","hey").should == ["hey","blah blah more blah"]
-      end
-    
-      it "should return nil if not found" do
-        Parser.parse_constant("blah blah more blah ","=").should == [nil,"blah blah more blah"]
-      end
-    
-      it "should be case insensitive" do
-        Parser.parse_constant(" blah stuff on more blah stuff ","blah").should == ["blah","stuff on more blah stuff"]
-        Parser.parse_constant(" BLAH stuff on more blah stuff ","blah").should == ["BLAH","stuff on more blah stuff"]
-        Parser.parse_constant(" blah stuff on more blah stuff ","BLAH").should == ["blah","stuff on more blah stuff"]
-      end
-    
-      it "should only find the first instance" do
-        Parser.parse_constant("one == two","==").should == [nil,"one == two"]
-      end
-      
-    end
+       
+       it "should handle one variable" do
+         Parser.new(:rules => ":name").rules.should == [ { :rule => :name, :stop => :end } ]
+       end
      
-    describe "#parse_word" do
+       it "should handle many variables" do
+         Parser.new(:rules => ":name :date").rules.should == [ { :rule => :name, :stop => :space }, { :rule => :date, :stop => :end } ]
+       end
+     
+       it "should deal with colons" do
+         Parser.new(:rules => ":name : :date").rules.should == [ { :rule => :name, :stop => :constant }, ":", { :rule => :date, :stop => :end } ]
+       end
+     
+       it "should deal with constant" do
+         Parser.new(:rules => "blah").rules.should == ["BLAH"]
+       end
+     
+       it "should deal with constant and variables" do
+         Parser.new(:rules => ":name blah :date").rules.should == [ { :rule => :name, :stop => :constant }, "BLAH", { :rule => :date, :stop => :end } ]
+       end
+     
+       it "should deal with multiple constants and variables" do
+         Parser.new(:rules => ":name blah more blah :date").rules.should == [ { :rule => :name, :stop => :constant }, "BLAH", "MORE", "BLAH", { :rule => :date, :stop => :end } ]
+       end
+       
+     end
       
-      it "should handle nil" do
-        @parser.parse_word(nil,nil).should == [nil,nil]
-        @parser.parse_word("",nil).should == [nil,nil]
-      end
-    
-      it "should look for global tokens" do
+     describe "#constants" do
+       
+       it "should be empty if only variables" do
+         Parser.new(:rules => ":name :blah").constants.should == [ ]
+       end
+     
+       it "should track all constants" do
+         Parser.new(:rules => ":name : :date").constants.should == [ ":" ]
+       end
+     
+       it "should upper case constants" do
+         Parser.new(:rules => "blah").constants.should == ["\\s+BLAH(\\s|$)"]
+       end
+     
+       it "should deal with multiple constants" do
+         Parser.new(:rules => ":name = :blah and :moreblah").constants.should == ["=","\\s+AND(\\s|$)"]
+       end
+     
+     end
+     
+     describe "#constants_no_spaces" do
+       
+       it "should be empty if only variables" do
+         Parser.new(:rules => ":name :blah").constants_no_spaces.should == [ ]
+       end
+     
+       it "should track all constants" do
+         Parser.new(:rules => ":name : :date").constants_no_spaces.should == [ ":" ]
+       end
+     
+       it "should upper case constants" do
+         Parser.new(:rules => "blah").constants_no_spaces.should == ["BLAH"]
+       end
+     
+       it "should deal with multiple constants" do
+         Parser.new(:rules => ":name = :blah and :moreblah").constants_no_spaces.should == ["=","AND"]
+       end
+     
+     end    
+      
+     describe "#parse_constant" do
+     
+       it "should handle nil" do
+         Parser.parse_constant(nil,nil).should == [nil,nil]
+         Parser.parse_constant("",nil).should == [nil,nil]
+       end
+     
+       it "should find the constant" do
+         Parser.parse_constant("= blah blah more blah ","=").should == ["=","blah blah more blah"]
+       end
+     
+       it "should find the constants with multiple characters" do
+         Parser.parse_constant("hey blah blah more blah ","hey").should == ["hey","blah blah more blah"]
+       end
+     
+       it "should return nil if not found" do
+         Parser.parse_constant("blah blah more blah ","=").should == [nil,"blah blah more blah"]
+       end
+     
+       it "should be case insensitive" do
+         Parser.parse_constant(" blah stuff on more blah stuff ","blah").should == ["blah","stuff on more blah stuff"]
+         Parser.parse_constant(" BLAH stuff on more blah stuff ","blah").should == ["BLAH","stuff on more blah stuff"]
+         Parser.parse_constant(" blah stuff on more blah stuff ","BLAH").should == ["blah","stuff on more blah stuff"]
+       end
+     
+       it "should only find the first instance" do
+         Parser.parse_constant("one == two","==").should == [nil,"one == two"]
+       end
+       
+     end
+      
+     describe "#parse_word" do
+       
+       it "should handle nil" do
+         @parser.parse_word(nil,nil).should == [nil,nil]
+         @parser.parse_word("",nil).should == [nil,nil]
+       end
+     
+       it "should look for global tokens" do
         parser = Parser.new(:tokenize => "xx")
         parser.parse_word("blah xx",:end).should == ["blah","xx"]
         parser.parse_word("blah xx stop","stop").should == ["blah","xx stop"]
@@ -259,6 +259,29 @@ module Appstats
       
     end
      
+    describe "#alpha?" do
+      
+      it "should be false for nil" do
+        Parser.alpha?(nil).should == false
+      end
+    
+      it "should be false for empty string" do
+        Parser.alpha?('').should == false
+      end
+    
+      it "should be false for non alpha string" do
+        Parser.alpha?('1abc').should == false
+        Parser.alpha?('abc2').should == false
+        Parser.alpha?('abc2def').should == false
+      end
+    
+      it "should be true for  alpha string" do
+        Parser.alpha?('a').should == true
+        Parser.alpha?('abc').should == true
+      end
+      
+    end 
+     
     describe "#parse" do
     
     
@@ -339,6 +362,12 @@ module Appstats
         parser.raw_results.should == [ "(", { :one => "blaa"}, "aa", "a1", { :two => "bla1"}, ")" ]
       end
     
+      it "should handle alpha constants as requiring spaces" do
+        parser = Appstats::Parser.new(:rules => ":one group :two")
+        parser.parse("group_by group aha")
+        parser.raw_results.should == [  { :one => "group_by"}, "group", { :two => "aha"} ]
+      end
+    
     
       describe "real examples" do
         
@@ -367,6 +396,13 @@ module Appstats
           parser.parse("# buyer-address-lookup last month").should == true
           parser.raw_results.should == [{:operation=>"#"}, {:action=>"buyer-address-lookup"}, {:host=>nil}, {:contexts=>nil}, {:date=>"last month"}]
         end
+       
+        it "should handle group_by" do
+          parser = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts group by :group_by")
+          parser.parse("# appstats_queries where action = abc AND contexts = 'def' || group_by like 'hik'").should == true
+          parser.results.should == {:operation => "#", :action => "appstats_queries", :date => nil, :host => nil, :group_by => nil, :contexts => "action = abc AND contexts = 'def' || group_by like 'hik'" }
+        end
+       
         
       end
       

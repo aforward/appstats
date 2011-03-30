@@ -73,13 +73,27 @@ module Appstats
       true
     end
     
+    def self.alpha?(raw_input)
+      return false if raw_input.nil?
+      !raw_input.match(/^[A-Za-z]+$/i).nil?
+    end
+    
     def self.parse_constant(current_text,constant)
       answer = [nil,nil]
       return answer if current_text.blank? || constant.nil?
       current_text.strip!
-      m = current_text.match(/^(#{constant})(.*)$/im)
+      
+      remaining_text_index = -1
+      if alpha?(constant)
+        m = current_text.match(/^(#{constant})(\s|$)(.*)$/im)  
+        remaining_text_index = 3
+      else
+        m = current_text.match(/^(#{constant})(.*)$/im)  
+        remaining_text_index = 2
+      end
+      
       answer[0] = m[1] unless m.nil?
-      answer[1] = m.nil? ? current_text : m[2]
+      answer[1] = m.nil? ? current_text : m[remaining_text_index]
       clean_parsed_word(answer)
     end
     
@@ -186,7 +200,7 @@ module Appstats
           current_token.gsub!(")",'\)')
           current_token.gsub!("|",'\|')
           @tokenize_no_spaces<< current_token
-          current_token = "\\s+#{current_token}" unless current_token.match(/.*[a-z].*/i).nil?
+          current_token = "\\s+#{current_token}(\\s|$)" unless current_token.match(/.*[a-z].*/i).nil?
           @tokenize<< current_token
         end
         @tokenize_regex_no_spaces = @tokenize_no_spaces.join("|")
@@ -209,7 +223,7 @@ module Appstats
             current_rule = rule.upcase
             current_rule_no_spaces = current_rule
             @constants_no_spaces<< current_rule_no_spaces
-            current_rule = "\\s+#{current_rule}" unless current_rule.match(/.*[a-z].*/i).nil?
+            current_rule = "\\s+#{current_rule}(\\s|$)" unless current_rule.match(/.*[a-z].*/i).nil?
             @constants<< current_rule
             previous_stop_on = :constant
           end

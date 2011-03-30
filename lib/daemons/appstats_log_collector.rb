@@ -63,6 +63,7 @@ while($running) do
   Appstats::Host.update_hosts
   Appstats::ContextKey.update_context_keys
   Appstats::ContextValue.update_context_values
+  Appstats::ActionContextKey.update_action_context_keys
   Appstats::LogCollector.remove_remote_files(appstats_config["remote_servers"])
   ActiveRecord::Base.connection.disconnect!
 end
