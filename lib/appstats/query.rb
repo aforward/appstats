@@ -55,25 +55,43 @@ module Appstats
       result.save
 
       unless @group_by.empty?
+        running_total = 0
         data = run_query { |conn| conn.select_all(@group_query_to_sql) }
         result.group_query_duration_in_seconds = data[:duration] unless data.nil?
         all_sub_results = data.nil? ? [] : data[:results]
         all_sub_results.each do |data|
-          if data["context_key_filter"].nil? || data["context_value_filter"].nil? || data["num"].nil?
-            Appstats.log(:error,"Missing context_key_filter, context_value_filter, or num in #{data.inspect}")
+          if data["context_key_filter"].nil? || data["num"].nil?
+            Appstats.log(:error,"Missing context_key_filter, or num in #{data.inspect}")
             next 
+          end
+
+          if data["context_value_filter"].nil?
+            Appstats.log(:error,"Missing context_value_filter, setting to empty string ''")
+            data["context_value_filter"] = ""
           end
           
           keys = data["context_key_filter"].split(",")
           values = data["context_value_filter"].split(",")
           key_values = {} and keys.each_with_index { |k,i| key_values[k] = values[i] }
-          ratio_of_total = data["num"].to_f / result.count
-          sub_result = Appstats::SubResult.new(:context_filter => @group_by.collect { |k| key_values[k] }.join(", "), :count => data["num"], :ratio_of_total => ratio_of_total)
+          current_count = data["num"].to_i
+          ratio_of_total = current_count.to_f / result.count
+          running_total += current_count
+          sub_result = Appstats::SubResult.new(:context_filter => @group_by.collect { |k| key_values[k] }.join(", "), :count => current_count, :ratio_of_total => ratio_of_total)
           sub_result.result = result
           sub_result.save
         end
+
+        if running_total < result.count
+          remaining_total = result.count - running_total
+          ratio_of_total = remaining_total.to_f / result.count
+          sub_result = Appstats::SubResult.new(:context_filter => nil, :count => remaining_total, :ratio_of_total => ratio_of_total)
+          sub_result.result = result
+          sub_result.save
+        end
+
         result.save
       end
+      
       result.reload
       result
     end

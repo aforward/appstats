@@ -273,6 +273,35 @@ module Appstats
           result = query.run
           result.sub_results.should == []
         end
+        
+        it "should track elements outside of the context" do
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a")
+          Appstats::Entry.create_from_logger("myblahs")
+          
+          query = Appstats::Query.new(:query => "# myblahs group by service_provider")
+          result = query.run
+          result.count.should == 4
+          result.sub_results.size.should == 2
+          result.sub_results[0].should == SubResult.new(:context_filter => "a", :count => 3, :ratio_of_total => 0.75)
+          result.sub_results[1].should == SubResult.new(:context_filter => nil, :count => 1, :ratio_of_total => 0.25)
+        end
+
+        it "should track empty and nil contexts" do
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => "")
+          Appstats::Entry.create_from_logger("myblahs",:service_provider => nil)
+          
+          query = Appstats::Query.new(:query => "# myblahs group by service_provider")
+          result = query.run
+          result.count.should == 4
+          result.sub_results.size.should == 2
+          result.sub_results[0].should == SubResult.new(:context_filter => "", :count => 2, :ratio_of_total => 0.5)
+          result.sub_results[1].should == SubResult.new(:context_filter => "a", :count => 2, :ratio_of_total => 0.5)
+        end
+
     
         it "should track sub results for single group by" do
           Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :ignore => "1")
@@ -346,7 +375,7 @@ module Appstats
           query = Query.new(:query => "# x group by y", :query_type => "Appstats::BadGroupTestQuery")
           result = query.run
           result.query_type.should == "Appstats::BadGroupTestQuery"
-          result.sub_results.should == []
+          result.sub_results.should == [ Appstats::SubResult.new(:context_filter => nil, :count => 2, :ratio_of_total => 1.0) ]
         end
     
         it "should reset database if things fail" do

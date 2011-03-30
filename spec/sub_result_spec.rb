@@ -173,6 +173,25 @@ module Appstats
       
     end
     
+    describe "#context_filter_to_s" do
+      
+      it "should support nil" do
+        @sub_result.context_filter_to_s.should == "-- N/A --"
+      end
+
+      it "should support ''" do
+        @sub_result.context_filter = ''
+        @sub_result.context_filter_to_s.should == "-- No Value --"
+      end
+
+      it "should support arbitrary text" do
+        @sub_result.context_filter = 'abc'
+        @sub_result.context_filter_to_s.should == "abc"
+      end
+
+      
+    end
+    
     
   end
 end

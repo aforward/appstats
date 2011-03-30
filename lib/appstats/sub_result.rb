@@ -17,6 +17,12 @@ module Appstats
     def total_count_to_s(data = {})
       Appstats::Result.calculate_count_to_s(total_count,data)
     end
+    
+    def context_filter_to_s
+      return "-- N/A --" if context_filter.nil?
+      return "-- No Value --" if context_filter.empty?
+      context_filter
+    end
 
 
     def ==(o)
