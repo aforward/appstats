@@ -35,6 +35,19 @@ module Appstats
       
     end
     
+    def find(job_frequency_if_not_available = 'once')
+      result = Appstats::Result.where("query = ? and is_latest = 1",@query).first
+      if result.nil?
+        if job_frequency_if_not_available.nil?
+          result = run
+        else
+          job_frequency_if_not_available = "once" if job_frequency_if_not_available == true
+          Appstats::ResultJob.create(:name => "Missing Query#find requested", :frequency => job_frequency_if_not_available, :query => @query, :query_type => @query_type)
+        end
+      end
+      result
+    end
+    
     def run
       result = Appstats::Result.new(:name => @name, :result_type => @result_type, :query => @query, :query_to_sql => @query_to_sql, :action => @action, :host => @host, :from_date => @date_range.from_date, :to_date => @date_range.to_date, :contexts => @contexts, :query_type => @query_type)
       unless @group_by.empty?

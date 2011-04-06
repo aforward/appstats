@@ -122,11 +122,103 @@ module Appstats
     
     end
     
+    describe "#find" do
+      
+      before(:each) do
+        Appstats::Entry.delete_all
+        Appstats::Result.delete_all
+      end
+      
+      describe "run right away" do
+
+        it "should run the query if it has not been run yet" do
+          Appstats::Entry.create(:action => "myblahs")
+
+          Time.stub!(:now).and_return(Time.parse("2010-09-20"))
+          query = Appstats::Query.new(:query => "# myblahs")
+          query.find(nil).count.should == 1
+
+          Appstats::Entry.create(:action => "myblahs")
+          query.find(nil).count.should == 1
+
+          Time.stub!(:now).and_return(Time.parse("2010-09-21")) 
+          query = Appstats::Query.new(:query => "# myblahs")
+          query.run.count.should == 2
+
+          query = Appstats::Query.new(:query => "# myblahs")
+          query.find(nil).count.should == 2
+        end
+                
+      end
+      
+      describe "do not run right away" do
+
+        it "should return nil no result available" do
+          Appstats::Entry.create(:action => "myblahs")
+          
+          query = Appstats::Query.new(:query => "# myblahs")
+          query.find.should == nil
+
+          query = Appstats::Query.new(:query => "# myblahs")
+          query.run.count.should == 1
+
+          query = Appstats::Query.new(:query => "# myblahs")
+          query.find.count.should == 1
+        end
+        
+        it "should schedule the query to be run" do
+          
+          query = Query.new(:query => "# x", :query_type => "Appstats::TestQuery")
+          query.find.should == nil
+
+          job = Appstats::ResultJob.last
+          job.name.should == "Missing Query#find requested"
+          job.frequency.should == 'once'
+          job.query.should == "# x"
+          job.query_type.should == "Appstats::TestQuery"
+        end
+
+        it "should allow scheduling to be set" do
+          
+          query = Query.new(:query => "# myblahs")
+          query.find('daily').should == nil
+
+          job = Appstats::ResultJob.last
+          job.name.should == "Missing Query#find requested"
+          job.frequency.should == 'daily'
+          job.query.should == "# myblahs"
+          job.query_type.should == nil
+        end
+        
+      end
+      
+      
+      
+    end
+    
     describe "#run" do
       
       before(:each) do
         Appstats::Entry.delete_all
+        Appstats::Result.delete_all
       end
+
+      it "should update is_latest accordingly" do
+        Appstats::Entry.create(:action => "myblahs")
+
+        Time.stub!(:now).and_return(Time.parse("2010-09-20"))
+        query = Appstats::Query.new(:query => "# myblahs")
+        result = query.run
+        result.is_latest.should == true
+
+        Time.stub!(:now).and_return(Time.parse("2010-09-21"))
+        query = Appstats::Query.new(:query => "# myblahs")
+        result2 = query.run
+        result.reload
+        result.is_latest.should == false
+        result2.is_latest.should == true
+      end
+      
       
       describe "core search" do
         it "should return 0 if no results" do
@@ -267,6 +359,8 @@ module Appstats
         before(:each) do
           Appstats::Entry.delete_all
           Appstats::Context.delete_all
+          Appstats::Result.delete_all
+          Appstats::SubResult.delete_all
         end
         
         it "should not create sub results if no group_by" do
