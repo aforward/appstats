@@ -46,6 +46,39 @@ module Appstats
       
     end
     
+    describe "#rename" do
+    
+      it "should update the ContextKey" do
+        context_key = Appstats::ContextKey.create(:name => 'a', :status => 'c')
+        Appstats::ContextKey.rename('a','aaa')
+        context_key.reload
+        context_key.name.should == 'aaa'
+      end
+
+      it "should update all Contexts" do
+        context = Appstats::Context.create(:context_key => 'b')
+        context2 = Appstats::Context.create(:context_key => 'notb')
+        Appstats::ContextKey.rename('b','bbb')
+        context.reload and context2.reload
+        
+        context.context_key.should == 'bbb'
+        context2.context_key.should == 'notb'
+      end
+      
+      it "should update ActionContextKeys" do
+        action = Appstats::ActionContextKey.create(:action_name => 'a', :context_key => 'b', :status => 'c')
+        action2 = Appstats::ActionContextKey.create(:action_name => 'a', :context_key => 'notb', :status => 'c')
+
+        Appstats::ContextKey.rename('b','bbb')
+        action.reload and action2.reload
+        
+        action.context_key.should == 'bbb'
+        action2.context_key.should == 'notb'
+      end
+    
+     
+    end
+    
 
   end
 end
