@@ -3,7 +3,7 @@ module Appstats
   class Query
 
     @@parser_template = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts group by :group_by")
-    @@contexts_parser_template = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "and or || && = <= >= <> < > != ( ) like 'not like'")
+    @@contexts_parser_template = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "( ) and or || && = <= >= <> < > != like 'not like' in")
     @@group_by_parser_template = Appstats::Parser.new(:rules => ":filter", :repeating => true, :tokenize => ",")
 
     @@nill_query = "select 0 from appstats_entries LIMIT 1"
@@ -143,12 +143,12 @@ module Appstats
         if status == :next
           status = :waiting_comparator
           @parsed_contexts<< { :context_key => entry[:context] }
-          sql += " (context_key = '#{Query.sqlclean(entry[:context])}'"
+          sql += " (context_key = #{Query.sqlquote(entry[:context])}"
         else
           status = :next
           @parsed_contexts.last[:context_value] = entry[:context]
           @parsed_contexts.last[:comparator] = comparator
-          sql += " and context_value #{comparator} '#{Query.sqlclean(entry[:context])}')"
+          sql += " and context_value #{comparator} #{Query.sqlquote(entry[:context],comparator)})"
         end
       end
       sql += ")" if status == :waiting_comparator
@@ -161,6 +161,15 @@ module Appstats
       return "or" if input == "||"
       return "<>" if input == "!="
       input
+    end
+    
+    def self.sqlquote(raw_input,comparator = '=')
+      return "NULL" if raw_input.nil?
+      if ["in"].include?(comparator)
+        return "(" + raw_input.split(",").collect { |x| sqlquote(x) }.join (",") + ")"
+      else
+        return "'#{sqlclean(raw_input)}'"  
+      end
     end
     
     def self.sqlclean(raw_input)
@@ -177,7 +186,7 @@ module Appstats
     end
     
     def self.comparators
-      ["=","!=","<>",">","<",">=","<=","like","not like"]
+      ["=","!=","<>",">","<",">=","<=","like","not like","in"]
     end
     
     private
@@ -256,7 +265,7 @@ module Appstats
 
         unless @group_by.empty?
           query_to_sql_with_id = @query_to_sql.sub("count(*) as num","id")
-          group_as_sql = @group_by.collect { |g| "'#{Query.sqlclean(g)}'" }.join(',')
+          group_as_sql = @group_by.collect { |g| "#{Query.sqlquote(g)}" }.join(',')
           @group_query_to_sql = "select context_key_filter, context_value_filter, count(*) as num from (select group_concat(appstats_contexts.context_key) as context_key_filter, group_concat(appstats_contexts.context_value) as context_value_filter, appstats_entry_id from appstats_contexts where context_key in (#{group_as_sql}) and appstats_entry_id in ( #{query_to_sql_with_id} ) group by appstats_entry_id) results group by context_value_filter"
         end
 

@@ -698,6 +698,10 @@ module Appstats
       it "should support not like" do
         Appstats::Query.new(:query => "# logins where user not like '%andrew%'").contexts_filter_to_sql.should == "#{@template} (context_key = 'user' and context_value not like '%andrew%')))"
       end
+
+      it "should support in" do
+        Appstats::Query.new(:query => "# logins where user_id in 1,2,3").contexts_filter_to_sql.should == "#{@template} (context_key = 'user_id' and context_value in ('1','2','3'))))"
+      end
     
       it "should support and" do
         Appstats::Query.new(:query => "# logins where user='andrew' and user='aforward'").contexts_filter_to_sql.should == "#{@template} (context_key = 'user' and context_value = 'andrew') and (context_key = 'user' and context_value = 'aforward')))"
@@ -709,6 +713,23 @@ module Appstats
         Appstats::Query.new(:query => "# logins").contexts_filter_to_sql.should == "1=1"
       end
       
+    end
+    
+    describe "#sqlquote" do
+      
+      it "should handle nil" do
+        Appstats::Query.sqlquote(nil).should == "NULL"
+        Appstats::Query.sqlquote('').should == "''" 
+      end
+      
+      it "should handle simple data" do
+        Appstats::Query.sqlquote("blah").should == "'blah'"
+      end
+    
+      it "should handle IN comparator" do
+        Appstats::Query.sqlquote("1,2,3","in").should == "('1','2','3')"
+      end
+    
     end
     
     describe "#sqlize" do
@@ -767,7 +788,7 @@ module Appstats
     describe "#comparators" do
     
       it "should be a list " do
-        Appstats::Query.comparators.should == ["=","!=","<>",">","<",">=","<=","like","not like"]
+        Appstats::Query.comparators.should == ["=","!=","<>",">","<",">=","<=","like","not like","in"]
       end
     
     end

@@ -1,3 +1,3 @@
 module Appstats
-  VERSION = "0.20.5"
+  VERSION = "0.20.6"
 end
