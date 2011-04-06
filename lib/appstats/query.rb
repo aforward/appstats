@@ -3,7 +3,7 @@ module Appstats
   class Query
 
     @@parser_template = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts group by :group_by")
-    @@contexts_parser_template = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "and or || && = <= >= <> < > != ( ) like")
+    @@contexts_parser_template = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "and or || && = <= >= <> < > != ( ) like 'not like'")
     @@group_by_parser_template = Appstats::Parser.new(:rules => ":filter", :repeating => true, :tokenize => ",")
 
     @@nill_query = "select 0 from appstats_entries LIMIT 1"
@@ -177,7 +177,7 @@ module Appstats
     end
     
     def self.comparators
-      ["=","!=","<>",">","<",">=","<=","like"]
+      ["=","!=","<>",">","<",">=","<=","like","not like"]
     end
     
     private

@@ -193,18 +193,18 @@ module Appstats
       end
       
       it "should understand an entry without contexts" do
-        entry = Entry.create_from_logger_string("0.20.4 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
+        entry = Entry.create_from_logger_string("0.20.5 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_search"
-        entry.raw_entry.should == "0.20.4 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
+        entry.raw_entry.should == "0.20.5 setup[:,=,-n] 2010-09-21 23:15:20 action=address_search"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
       end
       
       it "should understand contexts" do
-        entry = Entry.create_from_logger_string("0.20.4 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
+        entry = Entry.create_from_logger_string("0.20.5 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live")
         Entry.count.should == @before_count + 1
         entry.action.should == "address_filter"
-        entry.raw_entry.should == "0.20.4 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
+        entry.raw_entry.should == "0.20.5 setup[:,=,-n] 2010-09-21 23:15:20 action=address_filter : app_name=Market : server=Live"
         entry.occurred_at.should == Time.parse("2010-09-21 23:15:20")
         entry.contexts.size.should == 2
         entry.contexts[0].context_key = "app_name"
@@ -214,10 +214,10 @@ module Appstats
       end
       
       it "should handle 'action' as a context" do
-        entry = Entry.create_from_logger_string('0.20.4 setup[:,=,-n] 2011-02-24 12:59:57 action=page-view : action=save_ovcen : app_name=cdb')
+        entry = Entry.create_from_logger_string('0.20.5 setup[:,=,-n] 2011-02-24 12:59:57 action=page-view : action=save_ovcen : app_name=cdb')
         Entry.count.should == @before_count + 1
         entry.action.should == "page-view"
-        entry.raw_entry.should == "0.20.4 setup[:,=,-n] 2011-02-24 12:59:57 action=page-view : action=save_ovcen : app_name=cdb"
+        entry.raw_entry.should == "0.20.5 setup[:,=,-n] 2011-02-24 12:59:57 action=page-view : action=save_ovcen : app_name=cdb"
         entry.occurred_at.should == Time.parse("2011-02-24 12:59:57")
         entry.contexts.size.should == 2
         entry.contexts[0].context_key = "action"
@@ -228,10 +228,10 @@ module Appstats
       end
       
       it "should handle multiple of the same 'context'" do
-        entry = Entry.create_from_logger_string('0.20.4 setup[:,=,-n] 2011-02-24 12:59:57 action=page-view : app_name=market : app_name=cdb')
+        entry = Entry.create_from_logger_string('0.20.5 setup[:,=,-n] 2011-02-24 12:59:57 action=page-view : app_name=market : app_name=cdb')
         Entry.count.should == @before_count + 1
         entry.action.should == "page-view"
-        entry.raw_entry.should == "0.20.4 setup[:,=,-n] 2011-02-24 12:59:57 action=page-view : app_name=market : app_name=cdb"
+        entry.raw_entry.should == "0.20.5 setup[:,=,-n] 2011-02-24 12:59:57 action=page-view : app_name=market : app_name=cdb"
         entry.occurred_at.should == Time.parse("2011-02-24 12:59:57")
         entry.contexts.size.should == 2
         entry.contexts[0].context_key = "app_name"

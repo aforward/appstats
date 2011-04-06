@@ -194,14 +194,40 @@ module Appstats
         @tokenize_regex = nil
         @tokenize_regex_no_spaces = nil
         return if @raw_tokenize.blank?
+        is_multi_work_token = false
+        current_token = nil
         @raw_tokenize.split(" ").each do |token|
-          current_token = token.upcase
+
+          start_token = token.starts_with?("'")
+          end_token = is_multi_work_token and token.ends_with?("'")
+          mid_token = !start_token && !end_token && is_multi_work_token
+          add_token = false
+          
+          if start_token
+            current_token = token.upcase[1..-1]
+            is_multi_work_token = true
+          elsif mid_token
+            current_token = "#{current_token}#{token.upcase}"
+          elsif end_token
+            current_token = "#{current_token}#{token.upcase.chop}"
+            is_multi_work_token = false
+            add_token = true
+          else
+            current_token = token.upcase
+            add_token = true
+          end
+
           current_token.gsub!("(",'\(')
           current_token.gsub!(")",'\)')
           current_token.gsub!("|",'\|')
-          @tokenize_no_spaces<< current_token
-          current_token = "\\s+#{current_token}(\\s|$)" unless current_token.match(/.*[a-z].*/i).nil?
-          @tokenize<< current_token
+          
+          if add_token
+            @tokenize_no_spaces<< current_token
+            current_token = "\\s+#{current_token}(\\s|$)" unless current_token.match(/.*[a-z].*/i).nil?  
+            @tokenize<< current_token
+          else is_multi_work_token
+             current_token = "#{current_token}\\s+"
+          end
         end
         @tokenize_regex_no_spaces = @tokenize_no_spaces.join("|")
         @tokenize_regex = @tokenize.join("|")

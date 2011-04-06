@@ -694,6 +694,10 @@ module Appstats
       it "should support like" do
         Appstats::Query.new(:query => "# logins where user like '%andrew%'").contexts_filter_to_sql.should == "#{@template} (context_key = 'user' and context_value like '%andrew%')))"
       end
+
+      it "should support not like" do
+        Appstats::Query.new(:query => "# logins where user not like '%andrew%'").contexts_filter_to_sql.should == "#{@template} (context_key = 'user' and context_value not like '%andrew%')))"
+      end
     
       it "should support and" do
         Appstats::Query.new(:query => "# logins where user='andrew' and user='aforward'").contexts_filter_to_sql.should == "#{@template} (context_key = 'user' and context_value = 'andrew') and (context_key = 'user' and context_value = 'aforward')))"
@@ -763,7 +767,7 @@ module Appstats
     describe "#comparators" do
     
       it "should be a list " do
-        Appstats::Query.comparators.should == ["=","!=","<>",">","<",">=","<=","like"]
+        Appstats::Query.comparators.should == ["=","!=","<>",">","<",">=","<=","like","not like"]
       end
     
     end

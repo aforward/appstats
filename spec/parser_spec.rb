@@ -19,7 +19,7 @@ module Appstats
          @parser.constants.should == []
          @parser.constants_no_spaces.should == []
        end
-       
+      
        it "should set rules from constructor" do
          parser = Parser.new(:rules => ":name or :bust", :tokenize => "a bb c", :repeating => true)
          parser.raw_rules.should == ":name or :bust"
@@ -31,6 +31,13 @@ module Appstats
          parser.constants.should == ["\\s+OR(\\s|$)"]
          parser.constants_no_spaces.should == ["OR"]
        end
+
+       it "should tokenize multi words" do
+         parser = Parser.new(:rules => ":name or :bust", :tokenize => "a 'not a'", :repeating => true)
+         parser.tokenize.should == ["\\s+A(\\s|$)","\\s+NOT\\s+A(\\s|$)"]
+         parser.tokenize_no_spaces.should == ["A","NOT\\s+A"]
+       end
+
      
        it "should espace tokens as required" do
          parser = Parser.new(:tokenize => "( ) abc |")
@@ -48,8 +55,7 @@ module Appstats
        it "should end on constant if tokens present" do
          Parser.new(:rules => ":name", :tokenize => ")").rules.should == [ { :rule => :name, :stop => :end } ]
        end
-     
-       
+
        it "should handle one variable" do
          Parser.new(:rules => ":name").rules.should == [ { :rule => :name, :stop => :end } ]
        end
@@ -355,6 +361,19 @@ module Appstats
         parser.parse("( ( a = b ) )").should == true
         parser.raw_results.should == [ "(", "(", { :context_key => "a"}, "=", { :context_value => "b"}, ")", ")" ]
       end
+
+      it "should handle tokens with spaces" do
+        parser = Parser.new(:rules => ":context", :repeating => true, :tokenize => "like 'not like'")
+        parser.parse("a  not like  b").should == true
+        parser.raw_results.should == [ { :context => "a"}, "not like", { :context => "b"} ]
+      end
+
+      it "should handle tokens with many spaces" do
+        parser = Parser.new(:rules => ":context", :repeating => true, :tokenize => "like 'not like'")
+        parser.parse("a  not   like  b").should == true
+        parser.raw_results.should == [ { :context => "a"}, "not   like", { :context => "b"} ]
+      end
+
     
       it "should tokenize letters only if spaces between them" do
         parser = Appstats::Parser.new(:rules => ":one :two", :tokenize => "( aa a1 )")
