@@ -105,6 +105,11 @@ module Appstats
         result.save
       end
       
+      if @operation == "#!"
+        Result.where("(query = ? or query = ?) and id <> ?",@query,@query.sub("#!","#"),result.id).delete_all
+        result.save
+      end
+      
       result.reload
       result
     end
@@ -166,7 +171,7 @@ module Appstats
     def self.sqlquote(raw_input,comparator = '=')
       return "NULL" if raw_input.nil?
       if ["in","not in"].include?(comparator)
-        return "(" + raw_input.split(",").collect { |x| sqlquote(x) }.join (",") + ")"
+        return "(" + raw_input.split(",").collect { |x| sqlquote(x) }.join(",") + ")"
       else
         return "'#{sqlclean(raw_input)}'"  
       end
@@ -255,7 +260,7 @@ module Appstats
         parse_contexts(parser.results[:contexts])
         parse_group_by(parser.results[:group_by])
         
-        if @operation == "#"
+        if !@operation.nil? && @operation.starts_with?("#")
           @query_to_sql = "select count(*) as num from appstats_entries"
           @query_to_sql += " where action = '#{@action}'" unless @action.blank?
           @query_to_sql += " and #{@date_range.to_sql}" unless @date_range.to_sql == "1=1"

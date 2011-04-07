@@ -219,6 +219,38 @@ module Appstats
         result2.is_latest.should == true
       end
       
+      describe "#!" do
+        
+        it "deletes all but the latest" do
+          before_count = Result.count
+          query = Appstats::Query.new(:query => "#! whodats")
+          result1 = query.run
+          Result.count.should == before_count + 1
+          result2 = query.run
+          Result.count.should == before_count + 1
+          
+          Result.exists?(result1.id).should == false
+          Result.exists?(result2.id).should == true
+          result2.is_latest.should == true
+        end
+        
+        it "deletes non #! as well" do
+
+          before_count = Result.count
+          query = Appstats::Query.new(:query => "# whodats")
+          result1 = query.run
+          Result.count.should == before_count + 1
+
+          query = Appstats::Query.new(:query => "#! whodats")
+          result2 = query.run
+          Result.count.should == before_count + 1
+          
+          Result.exists?(result1.id).should == false
+          Result.exists?(result2.id).should == true
+          result2.is_latest.should == true
+        end
+        
+      end
       
       describe "core search" do
         it "should return 0 if no results" do
