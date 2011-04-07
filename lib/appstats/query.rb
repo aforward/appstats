@@ -3,7 +3,7 @@ module Appstats
   class Query
 
     @@parser_template = Appstats::Parser.new(:rules => ":operation :action :date on :host where :contexts group by :group_by")
-    @@contexts_parser_template = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "( ) and or || && = <= >= <> < > != like 'not like' in")
+    @@contexts_parser_template = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "( ) and or || && = <= >= <> < > != like 'not like' in 'not in'")
     @@group_by_parser_template = Appstats::Parser.new(:rules => ":filter", :repeating => true, :tokenize => ",")
 
     @@nill_query = "select 0 from appstats_entries LIMIT 1"
@@ -165,7 +165,7 @@ module Appstats
     
     def self.sqlquote(raw_input,comparator = '=')
       return "NULL" if raw_input.nil?
-      if ["in"].include?(comparator)
+      if ["in","not in"].include?(comparator)
         return "(" + raw_input.split(",").collect { |x| sqlquote(x) }.join (",") + ")"
       else
         return "'#{sqlclean(raw_input)}'"  
@@ -186,7 +186,7 @@ module Appstats
     end
     
     def self.comparators
-      ["=","!=","<>",">","<",">=","<=","like","not like","in"]
+      ["=","!=","<>",">","<",">=","<=","like","not like","in","not in"]
     end
     
     private

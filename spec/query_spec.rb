@@ -702,6 +702,10 @@ module Appstats
       it "should support in" do
         Appstats::Query.new(:query => "# logins where user_id in 1,2,3").contexts_filter_to_sql.should == "#{@template} (context_key = 'user_id' and context_value in ('1','2','3'))))"
       end
+
+      it "should support not in" do
+        Appstats::Query.new(:query => "# logins where user_id not in 1,2,3").contexts_filter_to_sql.should == "#{@template} (context_key = 'user_id' and context_value not in ('1','2','3'))))"
+      end
     
       it "should support and" do
         Appstats::Query.new(:query => "# logins where user='andrew' and user='aforward'").contexts_filter_to_sql.should == "#{@template} (context_key = 'user' and context_value = 'andrew') and (context_key = 'user' and context_value = 'aforward')))"
@@ -788,7 +792,7 @@ module Appstats
     describe "#comparators" do
     
       it "should be a list " do
-        Appstats::Query.comparators.should == ["=","!=","<>",">","<",">=","<=","like","not like","in"]
+        Appstats::Query.comparators.should == ["=","!=","<>",">","<",">=","<=","like","not like","in","not in"]
       end
     
     end
