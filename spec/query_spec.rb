@@ -127,6 +127,7 @@ module Appstats
       before(:each) do
         Appstats::Entry.delete_all
         Appstats::Result.delete_all
+        Appstats::ResultJob.delete_all
       end
       
       describe "run right away" do
@@ -172,6 +173,7 @@ module Appstats
           query.find.should == nil
 
           job = Appstats::ResultJob.last
+          job.should_not == nil
           job.name.should == "Missing Query#find requested"
           job.frequency.should == 'once'
           job.query.should == "# x"
@@ -189,6 +191,35 @@ module Appstats
           job.query.should == "# myblahs"
           job.query_type.should == nil
         end
+        
+        it "should not reschedule if schedule already exists" do
+          before_count = Appstats::ResultJob.count
+          query = Query.new(:query => "# myblahs")
+          query.find('daily').should == nil
+          query.find('daily').should == nil
+          Appstats::ResultJob.count.should == before_count + 1
+        end
+
+        it "should not update the schedule" do
+          query = Query.new(:query => "# myblahs")
+          query.find('daily').should == nil
+          job = Appstats::ResultJob.last
+          query.find('monthly').should == nil
+          job.reload
+          job.frequency.should == 'daily'
+        end
+
+        it "should re-run job if original jobs are complete" do
+          before_count = Appstats::ResultJob.count
+          query = Query.new(:query => "# myblahs")
+          query.find('once').should == nil
+          job = Appstats::ResultJob.last
+          job.last_run_at = Time.now and job.save.should == true
+          
+          query.find('daily').should == nil
+          Appstats::ResultJob.count.should == before_count + 2
+        end
+
         
       end
       
