@@ -51,7 +51,7 @@ module Appstats
       all.each do |job|
         if job.should_run
           Appstats.log(:info, "  - Job #{job.name} run [ID #{job.id}, FREQUENCY #{job.frequency}, QUERY #{job.query}]")
-          query = Appstats::Query.new(:name => job.name, :result_type => "result_job", :query => job.query)
+          query = Appstats::Query.new(:name => job.name, :result_type => "result_job", :query => job.query, :query_type => job.query_type)
           query.run
           job.last_run_at = Time.now
           job.save

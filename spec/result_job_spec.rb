@@ -306,6 +306,15 @@ module Appstats
         job1.reload
         job1.last_run_at.to_s.should == @tuesday.to_s
       end
+
+      it "should track the query_type" do
+        job1 = Appstats::ResultJob.create(:query => "# blahs", :frequency => "once", :query_type => "Appstats::TestQuery")
+        Appstats::ResultJob.run.should == 1
+        result = Appstats::Result.last
+        result.query.should == "# blahs"
+        result.query_type.should == "Appstats::TestQuery"
+      end
+
       
       it "should log when no queries" do
         Appstats.should_receive(:log).with(:info, "No result jobs to run.")
