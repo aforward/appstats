@@ -8,3 +8,4 @@ config/initializers/appstats.rb
 log
 appstats_2010-09-21.log
 tmp
+.rvmrc
