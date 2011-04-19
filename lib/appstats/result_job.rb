@@ -42,7 +42,7 @@ module Appstats
 
     def self.run
       count = 0
-      all = ResultJob.where("frequency <> 'once' or last_run_at IS NULL").all
+      all = Appstats.rails3? ? ResultJob.where("frequency <> 'once' or last_run_at IS NULL").all : ResultJob.find(:all, :conditions => "frequency <> 'once' or last_run_at IS NULL")
       if all.size == 0
         Appstats.log(:info, "No result jobs to run.")
         return count

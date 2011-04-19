@@ -339,10 +339,6 @@ module Appstats
         Appstats::ResultJob.run.should == 1
       end
       
-      it "should filter out 'once' with a date" do
-        
-      end
-      
       it "should create results" do
         job1 = Appstats::ResultJob.create(:name => "x", :query => "# blahs", :frequency => "once")
         job2 = Appstats::ResultJob.create(:name => "y", :query => "# blahs where type=1", :frequency => "once")

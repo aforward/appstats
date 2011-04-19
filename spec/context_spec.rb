@@ -27,7 +27,7 @@ module Appstats
       end
 
       it "should set on constructor" do
-        context = Appstats::Context.new(:context_key => 'a', :context_value => "b", :context_int => 1, :context_float => 1.3)
+        context = Appstats::Context.new(:context_key => 'a', :context_value => "b")
         context.context_key.should == 'a'
         context.context_value.should == 'b'
         context.context_int.should == nil

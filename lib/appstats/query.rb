@@ -36,13 +36,13 @@ module Appstats
     end
     
     def find(job_frequency_if_not_available = 'once')
-      result = Appstats::Result.where("query = ? and is_latest = 1",@query).first
+      result = Appstats.rails3? ? Appstats::Result.where("query = ? and is_latest = 1",@query).first : Appstats::Result.find(:first,:conditions => [ "query = ? and is_latest = 1",@query ]) 
       if result.nil?
         if job_frequency_if_not_available.nil?
           result = run
         else
           job_frequency_if_not_available = "once" if job_frequency_if_not_available == true
-          existing = Appstats::ResultJob.where("query = ? and (last_run_at is null or frequency <> 'once')",@query).first
+          existing = Appstats.rails3? ? Appstats::ResultJob.where("query = ? and (last_run_at is null or frequency <> 'once')",@query).first : Appstats::ResultJob.find(:first,:conditions => [ "query = ? and (last_run_at is null or frequency <> 'once')",@query ]) 
           if existing.nil?
             Appstats::ResultJob.create(:name => "Missing Query#find requested", :frequency => job_frequency_if_not_available, :query => @query, :query_type => @query_type)  
           end
@@ -109,7 +109,11 @@ module Appstats
       end
       
       if @operation == "#!"
-        Result.where("(query = ? or query = ?) and id <> ?",@query,@query.sub("#!","#"),result.id).delete_all
+        if Appstats.rails3?
+          Result.where("(query = ? or query = ?) and id <> ?",@query,@query.sub("#!","#"),result.id).delete_all
+        else
+          Result.delete_all(["(query = ? or query = ?) and id <> ?",@query,@query.sub("#!","#"),result.id])
+        end
         result.save
       end
       
@@ -219,17 +223,18 @@ module Appstats
           db_config = ActiveRecord::Base.connection.instance_variable_get(:@config)
           restore_connection
           data = { :results => results, :db_config => db_config, :duration => timer.duration }
+          return data
         rescue Exception => e
           restore_connection
           Appstats.log(:error,"Something bad occurred during Appstats::#{query_type}#run_query")
           Appstats.log(:error,e.message)
-          nil
+          return nil
         end
       end
     
     
       def normalize_action_name(action_name)
-        action = Appstats::Action.where("plural_name = ?",action_name).first
+        action = Appstats.rails3? ? Appstats::Action.where("plural_name = ?",action_name).first : Appstats::Action.find(:first,:conditions => [ "plural_name = ?",action_name ]) 
         action.nil? ? action_name : action.name 
       end
       

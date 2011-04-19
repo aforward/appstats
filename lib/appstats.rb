@@ -44,4 +44,9 @@ module Appstats
     end
   end
   
+  def self.rails3?
+    Appstats::Action.respond_to?(:where)
+  end
+  
+  
 end

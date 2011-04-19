@@ -529,7 +529,7 @@ module Appstats
           [result.db_username,result.db_name,result.db_host].should == ['root','appstats_development','localhost']
         end
 
-        it "should handle group by when core search has errors errors" do
+        it "should handle group by when core search has errors" do
           TestObject.create and TestObject.create
           
           query = Query.new(:query => "# x group by y", :query_type => "Appstats::BadTestQuery")
@@ -579,11 +579,12 @@ module Appstats
           query2 = Query.new(:query => "# x on otherServer", :query_type => "Appstats::TestQuery")
           result2 = query2.run
           
-          if result2.count == result1.count #coincidence
+          if result1.count == result2.count #coincidence
             TestObject.create(:name => "aa")
-            result2 = query2.run
+            query1 = Query.new(:query => "# x on testServer", :query_type => "Appstats::TestQuery")
+            result1 = query1.run
           end
-    
+          
           result1.count.should_not == result2.count
     
           result1 = query1.run

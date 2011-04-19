@@ -130,7 +130,7 @@ module Appstats
       
       describe "# booms" do
 
-        it "should return nil results" do
+        it "should return nil results (catch the exception)" do
           @appstats_query.query = Appstats::Query.new(:query => "# booms", :query_type => "Appstats::AppstatsQuery")
           @appstats_query.process_query
           @appstats_query.query_to_sql.should == "invalid sql"

@@ -51,7 +51,6 @@ module Appstats
     def self.create_from_logger_string(action_and_contexts)
       return false if action_and_contexts.nil? || action_and_contexts == ''
       hash = Logger.entry_to_hash(action_and_contexts)
-      
       action_name = hash[:action].kind_of?(Array) ? hash[:action][0] : hash[:action]
       entry = Appstats::Entry.new(:action => action_name, :raw_entry => action_and_contexts)
       entry.occurred_at = Time.parse(hash[:timestamp]) unless hash[:timestamp].nil?
@@ -61,8 +60,8 @@ module Appstats
         if key == :action
           all_values = all_values[1..-1]
         end
-        all_values.each do |value|
-          context = Appstats::Context.create(:context_key => key, :context_value => value)
+        all_values.each do |v|
+          context = Appstats::Context.create(:context_key => key.to_s, :context_value => v)
           entry.contexts<< context
         end
       end

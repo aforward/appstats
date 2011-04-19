@@ -89,7 +89,7 @@ module Appstats
     end
     
     def self.download_remote_files(raw_logins)
-      all = LogCollector.where("status = 'unprocessed'").all
+      all = Appstats.rails3? ? LogCollector.where("status = 'unprocessed'").all : LogCollector.find(:all,:conditions => "status = 'unprocessed'")
       if all.empty?
         Appstats.log(:info,"No remote logs to download.")
         return 0
@@ -127,7 +127,7 @@ module Appstats
     end
     
     def self.process_local_files
-      all = LogCollector.where("status = 'downloaded'").all
+      all = Appstats.rails3? ? LogCollector.where("status = 'downloaded'").all : LogCollector.find(:all, :conditions => "status = 'downloaded'")
       if all.empty?
         Appstats.log(:info,"No local logs to process.")
         return 0
@@ -159,7 +159,7 @@ module Appstats
     end
 
     def self.remove_remote_files(raw_logins)
-      all = LogCollector.where("status = 'processed'").all
+      all = Appstats.rails3? ? LogCollector.where("status = 'processed'").all : LogCollector.find(:all,:conditions => "status = 'processed'")
       if all.empty?
         Appstats.log(:info,"No remote logs to remove.")
         return 0
