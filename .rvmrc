@@ -1,1 +1,1 @@
-rvm 1.8.7-p248@appstats_rails2 --create
+rvm 1.8.7-p248@appstats --create
