@@ -14,7 +14,8 @@ begin
     t.config = "db/config.yml"
     t.schema = "db/schema.rb"
     t.env = "DB"
-    t.default_env = "development"
+    # TODO: figure out why this property went away
+    # t.default_env = "development"
     t.verbose = true
     t.log_level = Logger::ERROR
   end
