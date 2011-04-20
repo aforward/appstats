@@ -115,6 +115,9 @@ module Appstats
         t_parts = [:year,:month,:day, :week]
       elsif input.match(/^this day$/)
         t_parts = [:year,:month,:day]
+      elsif input.match(/^(.*)\s*(\d+),[^\d]*(\d*)$/) # month day, year
+        t = Time.parse(input)
+        t_parts = [:year,:month,:day]
       elsif input.match(/^(.*),[^\d]*(\d*)$/) # month, year
         t = Time.parse(input)
         t_parts = [:year,:month]

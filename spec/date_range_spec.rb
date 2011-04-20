@@ -46,6 +46,15 @@ module Appstats
         range = DateRange.parse("  between Mar, 2010 and Jun, 2011  ")
         range.should == DateRange.new(:from => EntryDate.new(:year => 2010, :month => 3), :to => EntryDate.new(:year => 2011, :month => 6), :format => :inclusive )
       end
+      
+      describe "real examples" do
+        
+        it "should understand 'between Mar 6, 2011 and Mar 12, 2011'" do
+          range = DateRange.parse("  between Mar 6, 2011 and Mar 12, 2011  ")
+          range.should == DateRange.new(:from => EntryDate.new(:year => 2011, :month => 3, :day => 6), :to => EntryDate.new(:year => 2011, :month => 3, :day => 12), :format => :inclusive )
+        end
+        
+      end
 
       it "should understand in" do
         range = DateRange.parse("  in Mar, 2010  ")

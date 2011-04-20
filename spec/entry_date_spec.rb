@@ -407,6 +407,14 @@ module Appstats
         EntryDate.parse("1234asdf1234 1234fds123").should == EntryDate.new
       end
       
+      describe "real examples" do
+        
+        it "should accept 'Mar 6, 2011'" do
+          EntryDate.parse("Mar 6, 2011").should == EntryDate.new(:year => 2011, :month => 3, :day => 6)  
+        end
+        
+      end
+      
       
     end
 
