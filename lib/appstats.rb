@@ -1,8 +1,10 @@
 require 'rubygems'
 require 'active_record'
 require "#{File.dirname(__FILE__)}/appstats/acts_as_appstatsable"
+require "#{File.dirname(__FILE__)}/appstats/acts_as_auditable"
 require "#{File.dirname(__FILE__)}/appstats/code_injections"
 require "#{File.dirname(__FILE__)}/appstats/entry"
+require "#{File.dirname(__FILE__)}/appstats/audit"
 require "#{File.dirname(__FILE__)}/appstats/entry_date"
 require "#{File.dirname(__FILE__)}/appstats/date_range"
 require "#{File.dirname(__FILE__)}/appstats/action"

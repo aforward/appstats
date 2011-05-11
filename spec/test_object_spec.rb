@@ -11,11 +11,13 @@ module Appstats
     
       it "should set name to nil" do
         @obj.name.should == nil
+        @obj.last_name.should == nil
       end
     
       it "should set on constructor" do
-        obj = Appstats::TestObject.new(:name => 'a')
+        obj = Appstats::TestObject.new(:name => 'a', :last_name => 'b')
         obj.name.should == 'a'
+        obj.last_name.should == 'b'
       end
     
     end

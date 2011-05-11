@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110330171745) do
+ActiveRecord::Schema.define(:version => 20110510173343) do
 
   create_table "appstats_action_context_keys", :force => true do |t|
     t.string   "action_name"
@@ -24,6 +24,22 @@ ActiveRecord::Schema.define(:version => 20110330171745) do
     t.string   "name"
     t.string   "plural_name"
     t.string   "status"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "appstats_audits", :force => true do |t|
+    t.string   "table_name"
+    t.string   "column_type"
+    t.string   "obj_name"
+    t.string   "obj_attr"
+    t.string   "obj_type"
+    t.integer  "obj_id"
+    t.string   "action"
+    t.string   "old_value"
+    t.string   "new_value"
+    t.text     "old_value_full"
+    t.text     "new_value_full"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -159,6 +175,18 @@ ActiveRecord::Schema.define(:version => 20110330171745) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "last_name"
+    t.binary   "blah_binary"
+    t.boolean  "blah_boolean"
+    t.date     "blah_date"
+    t.datetime "blah_datetime"
+    t.decimal  "blah_decimal",   :precision => 10, :scale => 0
+    t.float    "blah_float"
+    t.integer  "blah_integer"
+    t.string   "blah_string"
+    t.text     "blah_text"
+    t.time     "blah_time"
+    t.datetime "blah_timestamp"
   end
 
 end
