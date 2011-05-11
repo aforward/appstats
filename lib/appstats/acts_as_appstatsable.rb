@@ -18,7 +18,6 @@ module ActsAsAppstatsable
       EOV
       
       acts_as_appstatsable_options(options)
-      
     end
     
     def acts_as_appstatsable_options(options = {})

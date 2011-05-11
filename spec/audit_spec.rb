@@ -45,7 +45,7 @@ module Appstats
       
       it "should call audit_create" do
         t = TestObject.new(:name => 'a')
-        Audit.should_receive(:audit_create).with(t).and_return(5)
+        Audit.should_receive(:audit_create).with(t,{}).and_return(5)
         t.save.should == true
       end
          
@@ -56,7 +56,7 @@ module Appstats
       it "should call audit_update" do
         t = TestObject.create(:name => 'a')
         t.name = "x"
-        Audit.should_receive(:audit_update).with(t).and_return(2)
+        Audit.should_receive(:audit_update).with(t,{}).and_return(2)
         t.save
       end
       
@@ -135,7 +135,7 @@ module Appstats
       
       it "should call audit_destroy" do
         t = TestObject.create(:name => 'a')
-        Audit.should_receive(:audit_destroy).with(t).and_return(2)
+        Audit.should_receive(:audit_destroy).with(t,{}).and_return(2)
         t.destroy
       end
       
@@ -167,7 +167,19 @@ module Appstats
         audit.new_value.should == nil
         audit.old_value_full.should == nil
         audit.new_value_full.should == nil
-      end   
+      end
+      
+      it "should do the same on :except" do
+        t = TestObject.create(:name => 'a')
+        Audit.delete_all
+        Audit.audit_destroy(t, :except => [:name]).should == 1
+      end
+
+      it "should do the same on :only" do
+        t = TestObject.create(:name => 'a')
+        Audit.delete_all
+        Audit.audit_destroy(t, :only => [:name]).should == 1
+      end
 
     end
     
@@ -177,6 +189,38 @@ module Appstats
         Audit.audit_update(nil).should == 0
         Audit.count.should == 0
       end
+      
+      it "should be filterable on :except" do
+        t = TestObject.create(:name => 'a')
+        Audit.delete_all
+        
+        t.name = 'b'
+        t.last_name = 'c'
+        Audit.audit_update(t, :except => [:name]).should == 1
+
+        all = Audit.all
+        audit = all[0]
+        audit.table_name.should == "appstats_test_objects"
+        audit.column_type.should == "varchar(255)"
+        audit.obj_name.should == "Appstats::TestObject"
+        audit.obj_attr.should == 'last_name'
+      end
+
+      it "should be filterable on :only" do
+        t = TestObject.create(:name => 'a')
+        Audit.delete_all
+        
+        t.name = 'b'
+        t.last_name = 'c'
+        Audit.audit_update(t, :only => [:name]).should == 1
+
+        all = Audit.all
+        audit = all[0]
+        audit.table_name.should == "appstats_test_objects"
+        audit.column_type.should == "varchar(255)"
+        audit.obj_name.should == "Appstats::TestObject"
+        audit.obj_attr.should == 'name'
+      end      
       
       it "should track changed and initialized attributes" do
         t = TestObject.create(:name => 'a')
@@ -223,6 +267,33 @@ module Appstats
         Audit.count.should == 0
       end
       
+      it "should be filterable on :except" do
+        t = TestObject.create(:name => 'a')
+        Audit.delete_all
+
+        Audit.audit_create(t, :except => [:name]).should == 4
+        Audit.count.should == 4
+      end
+
+      it "should be filterable on :only" do
+        t = TestObject.create(:name => 'a')
+        Audit.delete_all
+
+        Audit.audit_create(t, :only => [:name]).should == 2
+        Audit.count.should == 2
+        
+        all = Audit.all
+        audit = all[0]
+        audit.table_name.should == "appstats_test_objects"
+        audit.obj_name.should == "Appstats::TestObject"
+        audit.obj_attr.should == nil
+
+        audit = all[1]
+        audit.table_name.should == "appstats_test_objects"
+        audit.obj_name.should == "Appstats::TestObject"
+        audit.obj_attr.should == 'name'
+      end
+
       it "should store all non nil properties on create" do
         t = TestObject.create(:name => 'a')
         Audit.delete_all

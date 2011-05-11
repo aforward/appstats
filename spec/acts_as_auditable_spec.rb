@@ -4,19 +4,69 @@ describe ActsAsAuditable do
 
   before(:each) do
     Time.stub!(:now).and_return(Time.parse('2010-09-21 23:15:20'))
-    Appstats::Logger.reset
+    Appstats::TestObject.acts_as_auditable_options
+    Appstats::Audit.delete_all
+  end
+
+  after(:all) do
     Appstats::TestObject.acts_as_auditable_options
   end
 
-  after(:each) do
-    File.delete(Appstats::Logger.filename) if File.exists?(Appstats::Logger.filename)
+  describe "should be settable in the options" do
+
+    describe "create" do
+
+      it "should only track included options" do
+        Appstats::TestObject.acts_as_auditable_options(:only => [:name])
+        @obj = Appstats::TestObject.create(:name => "x")
+        Appstats::Audit.count.should == 2
+      end
+
+      it "should exclude track excluded options" do
+        Appstats::TestObject.acts_as_auditable_options(:except => [:name])
+        @obj = Appstats::TestObject.create(:name => "x")
+        Appstats::Audit.count.should == 4
+      end    
+
+      it "should default to all " do
+        Appstats::TestObject.acts_as_auditable_options
+        @obj = Appstats::TestObject.create(:name => "x")
+        Appstats::Audit.count.should == 5
+      end
+            
+    end
+
+    describe "update" do
+
+      before(:each) do
+        @obj = Appstats::TestObject.create(:name => "x")
+        Appstats::Audit.delete_all
+        @obj.name = "y"
+        @obj.last_name = "z"
+        @obj.blah_string = "x"
+      end
+
+      it "should only track included options" do
+        Appstats::TestObject.acts_as_auditable_options(:only => [:name])
+        @obj.save
+        Appstats::Audit.count.should == 1
+      end
+
+      it "should exclude track excluded options" do
+        Appstats::TestObject.acts_as_auditable_options(:except => [:name])
+        @obj.save
+        Appstats::Audit.count.should == 2
+      end    
+
+      it "should default to all " do
+        @obj.save
+        Appstats::Audit.count.should == 3
+      end
+      
+    end
+
   end
 
-  describe "nothing" do
-    
-    pending "waiting for audit object"
-    
-  end
   
   # describe "default behaviour" do
   # 
