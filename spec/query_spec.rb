@@ -496,6 +496,8 @@ module Appstats
           result = query.run
           result.count.should == 10
           result.group_by.should == "service_provider, user"
+          
+          # sometimes it is four?!?
           result.sub_results.size.should == 3
           
           result.sub_results[0].should == SubResult.new(:context_filter => "a, 1", :count => 5, :ratio_of_total => 0.50)

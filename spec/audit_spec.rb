@@ -1,6 +1,11 @@
 require 'spec_helper'
 
 module Appstats
+  
+  class Audit
+    acts_as_auditable
+  end 
+  
   describe Audit do
 
     before(:each) do
@@ -41,6 +46,10 @@ module Appstats
     
     end
     
+    it "should ignore itself - even if requested" do
+      Audit.create(:table_name => "ignore")
+    end
+
     describe "save a new object" do
       
       it "should call audit_create" do
