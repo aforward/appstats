@@ -54,8 +54,11 @@ module Appstats
           return 0 if (options.key?(:except) && options[:except].include?(obj_attr.to_sym))
           return 0 if (options.key?(:only) && !options[:only].include?(obj_attr.to_sym))
         end
-        column_type = custom_fields.key?(:obj_attr) ? obj.class.columns_hash[custom_fields[:obj_attr]].sql_type : nil
-        obj_type = custom_fields.key?(:obj_attr) ? obj.class.columns_hash[custom_fields[:obj_attr]].type : nil
+        
+        column_data = obj.class.columns_hash[custom_fields[:obj_attr]]
+        column_type = column_data.nil? ? nil : column_data.sql_type
+        obj_type = column_type.nil? ? nil : column_data.type
+
         default_fields = { :table_name => obj.class.table_name, :column_type => column_type, :obj_type => obj_type, :obj_name => obj.class.name, :obj_id => obj.id, :old_value_full => custom_fields[:old_value], :new_value_full => custom_fields[:new_value] }
         Audit.create(default_fields.merge(custom_fields))
         1

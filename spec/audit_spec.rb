@@ -68,7 +68,7 @@ module Appstats
         Audit.should_receive(:audit_update).with(t,{}).and_return(2)
         t.save
       end
-      
+
       it "should store the type" do
         t = TestObject.new
         
@@ -275,7 +275,6 @@ module Appstats
         Audit.audit_create(nil).should == 0
         Audit.count.should == 0
       end
-      
       it "should be filterable on :except" do
         t = TestObject.create(:name => 'a')
         Audit.delete_all
