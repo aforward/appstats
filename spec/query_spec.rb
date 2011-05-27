@@ -479,25 +479,25 @@ module Appstats
         end
         
         it "should track sub results for multiple group by" do
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "1")
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "1")
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "1")
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "1")
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "1")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "a", :user => "1")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "a", :user => "1")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "a", :user => "1")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "a", :user => "1")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "a", :user => "1")
     
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "2")
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "a", :user => "2")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "a", :user => "2")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "a", :user => "2")
     
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "b", :user => "1")
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "b", :user => "1")
-          Appstats::Entry.create_from_logger("myblahs",:service_provider => "b", :user => "1")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "b", :user => "1")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "b", :user => "1")
+          Appstats::Entry.create_from_logger("yourblahs",:service_provider => "b", :user => "1")
           
-          query = Appstats::Query.new(:query => "# myblahs group by service_provider,user")
+          query = Appstats::Query.new(:query => "# yourblahs group by service_provider,user")
           result = query.run
           result.count.should == 10
           result.group_by.should == "service_provider, user"
           
-          # sometimes it is four?!?
+          # sometimes it is four or five?!?
           result.sub_results.size.should == 3
           
           result.sub_results[0].should == SubResult.new(:context_filter => "a, 1", :count => 5, :ratio_of_total => 0.50)
