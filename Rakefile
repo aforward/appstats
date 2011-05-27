@@ -1,6 +1,14 @@
 require 'bundler'
 Bundler::GemHelper.install_tasks
 
+if ENV['RAILS_BUNDLE_FIRST']
+  unless system('bundle check')
+    system('ruby -r rubygems -e "p Gem.path"')
+    puts "RAILS_BUNDLE_FIRST is set, running `bundle install #{ENV['RAILS_LOCAL_GEM_PATH']}`..."
+    system("bundle install #{ENV['RAILS_LOCAL_GEM_PATH']}") || raise("'bundle install #{ENV['RAILS_LOCAL_GEM_PATH']}' failed.")
+  end
+end
+
 require 'appstats/tasks'
 require 'metric_fu'
 require 'rspec/core/rake_task'

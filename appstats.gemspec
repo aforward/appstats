@@ -23,7 +23,10 @@ Gem::Specification.new do |s|
   s.add_development_dependency('standalone_migrations')
   s.add_development_dependency('mysql')
   s.add_development_dependency('metric_fu')
-  
+  s.add_development_dependency('guard-rspec')
+  s.add_development_dependency('autotest-fsevent') if RUBY_PLATFORM =~ /darwin/i
+  s.add_development_dependency('rb-fsevent') if RUBY_PLATFORM =~ /darwin/i
+
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
