@@ -276,6 +276,28 @@ module Appstats
           @query_to_sql += " and #{contexts_filter_to_sql}" unless @contexts.nil?
         end
 
+
+        # TRANSLATE FOR TRUE DISPLAY OF DATA
+        # select context_key_filter, context_value_filter, count(*) as num from (
+        #   select group_concat(results.context_key) as context_key_filter, group_concat(results.context_value) as context_value_filter, appstats_entry_id from 
+        #   (
+        #     select context_key, context_value, appstats_entry_id from 
+        #     (
+        #       select 10 as display_order, context_key, context_value, appstats_entry_id from appstats_contexts where context_key in ('user') and appstats_entry_id in ( select id from appstats_entries where action = 'yourblahs' )
+        #       union
+        #       select 11 as display_order, context_key, context_value, appstats_entry_id from appstats_contexts where context_key in ('service_provider') and appstats_entry_id in ( select id from appstats_entries where action = 'yourblahs' )
+        #     ) inner_results order by display_order
+        #   ) results group by appstats_entry_id
+        # ) results group by context_value_filter;
+
+        # OR, if we don't mind the sorting being done in the application
+        # select context_key_filter, context_value_filter, count(*) as num from (
+        #   select group_concat(results.context_key) as context_key_filter, group_concat(results.context_value) as context_value_filter, appstats_entry_id from 
+        #   (
+        #     select context_key, context_value, appstats_entry_id from appstats_contexts where context_key in ('user', 'service_provider') and appstats_entry_id in ( select id from appstats_entries where action = 'yourblahs' ) order by context_key
+        #   ) results group by appstats_entry_id
+        # ) results group by context_value_filter;
+
         unless @group_by.empty?
           query_to_sql_with_id = @query_to_sql.sub("count(*) as num","id")
           group_as_sql = @group_by.collect { |g| "#{Query.sqlquote(g)}" }.join(',')
