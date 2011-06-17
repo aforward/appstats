@@ -10,6 +10,7 @@ Eventually this will be used as a place to log actions done within your applicat
 
 No features - simply setting up the gem
 
+
 == SYNOPSIS:
 
 

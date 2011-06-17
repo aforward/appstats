@@ -4,7 +4,6 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
     task :build => ['config', 'create_logs']  do
       begin
         Rake::Task['ci:db_setup'].invoke
-        # Rake::Task['db:test:prepare'].invoke
         Rake::Task['ci:qa'].invoke
         Rake::Task['ci:success'].invoke
       rescue Exception => e
@@ -15,7 +14,7 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
 
     task :qa do
       Rake::Task['spec'].invoke
-      Rake::Task['metrics:all'].invoke
+      # Rake::Task['metrics:all'].invoke
     end
 
     # Creates a second database for testing the multi db access
