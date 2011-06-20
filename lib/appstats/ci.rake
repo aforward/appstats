@@ -61,7 +61,6 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
           FileUtils.touch "log/appstats_remote_log_2#{i}.log"
         end
       end
-      
 
       desc "Setup the database"
       task :reset do
