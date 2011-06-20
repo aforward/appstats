@@ -1,0 +1,20 @@
+database:
+  adapter: mysql
+  database: mystatsdb_production
+  username: root
+  password: 
+  host: localhost
+  encoding: utf8
+remote_servers:
+  - :host: my.remoteserver.com
+    :user: deploy
+    :password: abc123
+    :path: /home/deploy/rails/myapp/current/log
+    :template: appstats
+  - :host: jobs.remoteserver.com
+    :user: deploy
+    :password: abc123
+    :path: /home/deploy/rails/myotherapp/current/log
+    :template: appstats
+third_party_queries:
+  - :path: /file/to/your/custom/my_query.rb

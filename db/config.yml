@@ -1,0 +1,17 @@
+development:
+  adapter: mysql
+  database: appstats_development
+  username: root
+  password: 
+  host: localhost
+  encoding: utf8
+  cache: 
+    adapter: memcached
+    servers: localhost
+test:
+  adapter: mysql
+  database: appstats_test
+  username: root
+  password: 
+  host: localhost
+  encoding: utf8
