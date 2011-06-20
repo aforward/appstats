@@ -67,8 +67,6 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
         Rake::Task['appstats:install:migrations'].invoke
         Rake::Task['db:migrate'].invoke
       end
-      
     end
-
   end
 end
