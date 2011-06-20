@@ -23,8 +23,17 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
 
     desc "Run QA"
     task :qa do
-      Rake::Task['spec'].invoke
+      Rake::Task['ci:rspec'].invoke
+      # Rake::Task['spec'].invoke
       # Rake::Task['metrics:all'].invoke
+    end
+
+    desc "Run Rspec"
+    RSpec::Core::RakeTask.new(:rspec) do |t|
+      system "mkdir -p ../public" unless File.exists?("../public")
+      t.pattern = "./spec/**/*.rb"
+      t.rspec_opts = ["--format", "textmate", "--out", "../public/rpec.txt"]
+      t.fail_on_error = true
     end
 
     desc "The Build Succeeded, so tell our monitoring service"
