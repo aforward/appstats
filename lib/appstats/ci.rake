@@ -29,7 +29,7 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
 
     desc "The Build Succeeded, so tell our monitoring service"
     task :success do
-      FileUtils.cp '/home/deployer/monitor/git /Appstats.cc.success', '/home/deployer/monitor/log/Appstats.cc', :preserve => false
+      FileUtils.cp '/home/deployer/monitor/config/statuses/Appstats.cc.success', '/home/deployer/monitor/log/Appstats.cc', :preserve => false
     end
 
     desc "The Build failed, so tell our monitoring service"
