@@ -1,4 +1,4 @@
- = appstats 
+:w= appstats 
 
 * http://github.com/aforward/appstats
 
