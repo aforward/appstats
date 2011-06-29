@@ -3,7 +3,6 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
     desc "Perform a build on the CI server"
     task :build  do
       begin
-        Rake::Task['ci:rebase'].invoke
         Rake::Task['ci:db:config'].invoke
         Rake::Task['ci:db:logs'].invoke
         Rake::Task['ci:db:reset'].invoke
@@ -26,16 +25,8 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
       Rake::Task['ci:rspec'].invoke
       Rake::Task['ci:rcov'].invoke
     end
-    
-    desc "Run Rspec"
-    RSpec::Core::RakeTask.new(:rcov) do |t|
-      system "mkdir -p ../public/coverage" unless File.exists?("../public/coverage")
-      t.pattern = "./spec/**/*spec.rb"
-      t.rcov = true
-      t.rcov_opts = %w{--exclude osx\/objc,gems\/,spec\/,features\/ --output ../public/coverage}
-    end    
 
-    desc "Run Rcov"
+    desc "Run Rspec"
     RSpec::Core::RakeTask.new(:rspec) do |t|
       system "mkdir -p ../public" unless File.exists?("../public")
       t.pattern = "./spec/**/*spec.rb"
@@ -43,6 +34,14 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
       t.fail_on_error = true
     end
     
+    desc "Run Rcov"
+    RSpec::Core::RakeTask.new(:rcov) do |t|
+      system "mkdir -p ../public/coverage" unless File.exists?("../public/coverage")
+      t.pattern = "./spec/**/*spec.rb"
+      t.rcov = true
+      t.rcov_opts = %w{--exclude osx\/objc,gems\/,spec\/,features\/ --output ../public/coverage}
+    end    
+
     desc "The Build Succeeded, so tell our monitoring service"
     task :success do
       FileUtils.cp '/home/deployer/monitor/config/statuses/Appstats.cc.success', '/home/deployer/monitor/log/Appstats.cc', :preserve => false
