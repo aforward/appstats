@@ -27,8 +27,12 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
     end
 
     desc "Run Rspec"
-    RSpec::Core::RakeTask.new(:rspec) do |t|
+    task :rspec do
       system "mkdir -p ../public" unless File.exists?("../public")
+      Rake::Task['ci:rspec_run'].invoke
+    end
+
+    RSpec::Core::RakeTask.new(:rspec_run) do |t|
       t.pattern = "./spec/**/*spec.rb"
       t.rspec_opts = ["--format", "html", "--out", "../public/rspec.html"]
       t.fail_on_error = true
