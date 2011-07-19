@@ -1,6 +1,7 @@
 require 'rubygems'
-require 'rails'
 require 'active_record'
+require 'rails' unless Object.const_defined?('Rails')
+
 require "#{File.dirname(__FILE__)}/appstats/acts_as_appstatsable"
 require "#{File.dirname(__FILE__)}/appstats/acts_as_auditable"
 require "#{File.dirname(__FILE__)}/appstats/code_injections"
