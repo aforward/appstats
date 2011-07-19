@@ -2,7 +2,7 @@
 module Appstats
   class Action < ActiveRecord::Base
     set_table_name "appstats_actions"
-    # establish_connection "appstats_#{Rails.env}" if connection.nil?
+    establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
     
     attr_accessible :name, :plural_name, :status
 

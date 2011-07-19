@@ -2,7 +2,7 @@
 module Appstats
   class Audit < ActiveRecord::Base
     set_table_name "appstats_audits"
-    # establish_connection "appstats_#{Rails.env}" if connection.nil?
+    establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
     
     attr_accessible :table_name, :column_type, :obj_name, :obj_attr, :obj_type, :obj_id, :action, :old_value, :new_value, :old_value_full, :new_value_full
   
