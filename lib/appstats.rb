@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'rails'
 require 'active_record'
 require "#{File.dirname(__FILE__)}/appstats/acts_as_appstatsable"
 require "#{File.dirname(__FILE__)}/appstats/acts_as_auditable"
@@ -38,7 +39,7 @@ module Appstats
     if !$logger.nil?
       $logger.send(type,message)
     elsif defined?(Rails)
-      Rails.logger.send(type,message)
+      Rails.logger.send(type,message) unless Rails.logger.nil?
     elsif defined?(RAILS_DEFAULT_LOGGER)
       RAILS_DEFAULT_LOGGER.send(type,message)
     else

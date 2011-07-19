@@ -1,6 +1,7 @@
 module Appstats
   class ContextKey < ActiveRecord::Base
     set_table_name "appstats_context_keys"
+    # establish_connection "appstats_#{Rails.env}" if connection.nil?
     
     attr_accessible :name, :status
 

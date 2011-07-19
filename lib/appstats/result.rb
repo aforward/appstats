@@ -1,6 +1,7 @@
 module Appstats
   class Result < ActiveRecord::Base
     set_table_name "appstats_results"
+    # establish_connection "appstats_#{Rails.env}" if connection.nil?
 
     attr_accessible :name, :result_type, 
       :query, :query_to_sql, :count, :query_type, :query_duration_in_seconds, :group_query_duration_in_seconds,

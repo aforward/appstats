@@ -9,8 +9,13 @@ require File.dirname(__FILE__) + '/../lib/appstats'
 
 RSpec.configure do |config|
 
-  dbconfig = YAML::load(File.open('db/config.yml'))
-  ActiveRecord::Base.establish_connection(dbconfig['test'])
+  all_db_configs = YAML::load(File.open('db/config.yml'))
+  
+  all_db_configs.each do |key,db_config|
+    ActiveRecord::Base.configurations[key] = db_config
+  end
+  
+  ActiveRecord::Base.establish_connection(all_db_configs['test'])
 
   # == Mock Framework
   #
