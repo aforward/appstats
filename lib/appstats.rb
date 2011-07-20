@@ -52,5 +52,8 @@ module Appstats
     Appstats::Action.respond_to?(:where)
   end
   
+  def self.connection
+    Appstats::Entry.new.connection
+  end
   
 end

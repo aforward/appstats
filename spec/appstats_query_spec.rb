@@ -146,7 +146,7 @@ module Appstats
   
       it "should use the extract_env" do
         @appstats_query.query = Appstats::Query.new(:query => "# blahs on blah")
-        @appstats_query.db_connection.should == ActiveRecord::Base.connection
+        @appstats_query.db_connection.should == Appstats.connection
       end
   
     end

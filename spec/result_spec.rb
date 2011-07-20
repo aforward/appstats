@@ -249,7 +249,7 @@ module Appstats
         another_new_result = Appstats::Result.create(:query => '# y')
         Time.stub!(:now).and_return(Time.parse('2010-09-21 23:15:20'))
         another_old_result = Appstats::Result.create(:query => '# y')
-        ActiveRecord::Base.connection.update('update appstats_results set is_latest = null')
+        Appstats.connection.update('update appstats_results set is_latest = null')
 
         old_result = Appstats::Result.create(:query => '# x')
         
@@ -278,7 +278,7 @@ module Appstats
         Time.stub!(:now).and_return(Time.parse('2010-09-21 23:15:20'))
         old_result = Appstats::Result.create(:query => '# x')
         another_result = Appstats::Result.create(:query => '# y')
-        ActiveRecord::Base.connection.update('update appstats_results set is_latest = null')
+        Appstats.connection.update('update appstats_results set is_latest = null')
         
         Appstats::Result.fix_all_is_latest
         

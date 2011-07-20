@@ -204,8 +204,8 @@ module Appstats
     private
     
       def db_connection
-        return ActiveRecord::Base.connection if @custom_query.nil?
-        @backup_config = ActiveRecord::Base.connection.instance_variable_get(:@config)
+        return Appstats.connection if @custom_query.nil?
+        @backup_config = Appstats.connection.instance_variable_get(:@config)
         custom_connection = @custom_query.db_connection
       end
     
@@ -220,7 +220,7 @@ module Appstats
           timer = FriendlyTimer.new
           results = yield db_connection
           timer.stop
-          db_config = ActiveRecord::Base.connection.instance_variable_get(:@config)
+          db_config = Appstats.connection.instance_variable_get(:@config)
           restore_connection
           data = { :results => results, :db_config => db_config, :duration => timer.duration }
           return data

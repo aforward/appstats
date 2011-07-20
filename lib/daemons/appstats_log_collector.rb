@@ -49,7 +49,7 @@ while($running) do
   end
 
   last_processed_at = Time.now
-  ActiveRecord::Base.connection.reconnect!
+  Appstats.connection.reconnect!
   appstats_config["remote_servers"].each do |remote_server|
     Appstats::LogCollector.find_remote_files(remote_server,remote_server[:path],remote_server[:template])
   end
@@ -65,5 +65,5 @@ while($running) do
   Appstats::ContextValue.update_context_values
   Appstats::ActionContextKey.update_action_context_keys
   Appstats::LogCollector.remove_remote_files(appstats_config["remote_servers"])
-  ActiveRecord::Base.connection.disconnect!
+  Appstats.connection.disconnect!
 end

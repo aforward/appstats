@@ -9,7 +9,7 @@ module Appstats
     def self.update_actions
       sql = "select distinct(action) from appstats_entries where action not in (select name from appstats_actions)"
       count = 0
-      ActiveRecord::Base.connection.execute(sql).each do |row| 
+      Appstats.connection.execute(sql).each do |row| 
         Appstats::Action.create(:name => row[0], :plural_name => row[0].pluralize, :status => 'derived')
         count += 1
       end

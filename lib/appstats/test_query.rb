@@ -14,7 +14,7 @@ module Appstats
         dbconfig = YAML::load(File.open('db/config.yml'))
         ActiveRecord::Base.establish_connection(dbconfig['development']).connection
       else
-        ActiveRecord::Base.connection
+        Appstats.connection
       end
     end
     
@@ -29,7 +29,7 @@ module Appstats
     end
     
     def db_connection
-      ActiveRecord::Base.connection
+      Appstats.connection
     end
     
   end
@@ -44,7 +44,7 @@ module Appstats
     end
     
     def db_connection
-      ActiveRecord::Base.connection
+      Appstats.connection
     end
     
   end
@@ -55,7 +55,7 @@ module Appstats
       attr_accessor :query
       def process_query; end
       def db_connection
-        ActiveRecord::Base.connection
+        Appstats.connection
       end
 
     end
@@ -72,7 +72,7 @@ module Appstats
 
 
     def db_connection
-      ActiveRecord::Base.connection
+      Appstats.connection
     end
     
   end
@@ -84,6 +84,6 @@ class YetAnotherTestQuery
   attr_accessor :query
   def process_query; end
   def db_connection
-    ActiveRecord::Base.connection
+    Appstats.connection
   end
 end

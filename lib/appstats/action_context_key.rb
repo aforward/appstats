@@ -13,7 +13,7 @@ module Appstats
       where (action,context_key) not in (select action_name, context_key from appstats_action_context_keys)
       group by action,context_key"
       count = 0
-      ActiveRecord::Base.connection.execute(sql).each do |row| 
+      Appstats.connection.execute(sql).each do |row| 
         Appstats::ActionContextKey.create(:action_name => row[0], :context_key => row[1], :status => 'derived')
         count += 1
       end

@@ -69,11 +69,11 @@ module Appstats
     alias_method :eql?, :==
 
     def self.fix_all_is_latest
-      ActiveRecord::Base.connection.update('update appstats_results set is_latest = false')
-      all = ActiveRecord::Base.connection.select_all("select concat(id,' ',max(updated_at)) as id_and_date from appstats_results group by query")
+      connection.update('update appstats_results set is_latest = false')
+      all = connection.select_all("select concat(id,' ',max(updated_at)) as id_and_date from appstats_results group by query")
       return if all.empty?
       ids = all.each.collect { |e| e["id_and_date"].split[0] }.compact
-      ActiveRecord::Base.connection.update("update appstats_results set is_latest = '1' where id in (#{ids.join(',')})")
+      connection.update("update appstats_results set is_latest = '1' where id in (#{ids.join(',')})")
     end
     
     def self.calculate_count_to_s(raw_count,data = {})
@@ -94,14 +94,14 @@ module Appstats
 
       def update_is_latest
         sql = ["update appstats_results set is_latest = false where query = ?",query]
-        ActiveRecord::Base.connection.update(ActiveRecord::Base.send(:sanitize_sql_array, sql))
+        connection.update(ActiveRecord::Base.send(:sanitize_sql_array, sql))
         
         sql = ["select id from appstats_results where query = ? order by updated_at DESC",query]
-        first = ActiveRecord::Base.connection.select_one(ActiveRecord::Base.send(:sanitize_sql_array, sql))
+        first = connection.select_one(ActiveRecord::Base.send(:sanitize_sql_array, sql))
         return if first.nil?
         
         sql = ["update appstats_results set is_latest = '1' where id = ?",first["id"]]
-        ActiveRecord::Base.connection.update(ActiveRecord::Base.send(:sanitize_sql_array, sql))
+        connection.update(ActiveRecord::Base.send(:sanitize_sql_array, sql))
       end
 
       def self.add_commas(num)

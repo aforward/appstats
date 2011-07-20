@@ -558,7 +558,7 @@ module Appstats
           result.query_type.should == "Appstats::BadTestQuery"
           result.count.should == nil
     
-          ActiveRecord::Base.connection.current_database.should == YAML::load(File.open('db/config.yml'))["test"]["database"]
+          Appstats.connection.current_database.should == YAML::load(File.open('db/config.yml'))["test"]["database"]
         end
     
     

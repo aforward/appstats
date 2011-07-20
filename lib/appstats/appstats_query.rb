@@ -44,7 +44,7 @@ module Appstats
     end
   
     def db_connection
-      ActiveRecord::Base.connection
+      Appstats.connection
     end
   
     def self.available_action?(action)
