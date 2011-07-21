@@ -4,7 +4,7 @@ module Appstats
     set_table_name "appstats_contexts"
     establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
     
-    belongs_to :entry, :foreign_key => "appstats_entry_id"
+    belongs_to :entry, :class_name => "Appstats::Entry", :foreign_key => "appstats_entry_id"
     attr_accessible :context_key, :context_value
   
     def context_value=(value)

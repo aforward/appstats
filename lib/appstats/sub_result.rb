@@ -4,7 +4,7 @@ module Appstats
     establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
 
     attr_accessible :context_filter, :count, :ratio_of_total
-    belongs_to :result, :foreign_key => "appstats_result_id"
+    belongs_to :result, :class_name => "Appstats::Result", :foreign_key => "appstats_result_id"
 
     def total_count
       return 0 if result.nil?

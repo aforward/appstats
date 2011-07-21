@@ -9,7 +9,7 @@ module Appstats
     @@downloaded_log_directory = nil
     
     attr_accessible :host, :filename, :status, :local_filename
-    has_many :entries, :table_name => 'appstats_entries', :foreign_key => 'appstats_log_collector_id', :order => 'action'
+    has_many :entries, :class_name => "Appstats::Entry", :table_name => 'appstats_entries', :foreign_key => 'appstats_log_collector_id', :order => 'action'
 
     def calculated_local_filename
       if Appstats::LogCollector.downloaded_log_directory.nil?

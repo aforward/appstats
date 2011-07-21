@@ -4,8 +4,8 @@ module Appstats
     set_table_name "appstats_entries"
     establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
     
-    has_many :contexts, :table_name => 'appstats_contexts', :foreign_key => 'appstats_entry_id', :order => 'context_key'
-    belongs_to :log_collector, :foreign_key => "appstats_log_collector_id"
+    has_many :contexts, :class_name => "Appstats::Context", :table_name => 'appstats_contexts', :foreign_key => 'appstats_entry_id', :order => 'context_key'
+    belongs_to :log_collector, :class_name => "Appstats::LogCollector", :foreign_key => "appstats_log_collector_id"
     
     attr_accessible :action, :occurred_at, :raw_entry
 

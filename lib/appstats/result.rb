@@ -8,7 +8,7 @@ module Appstats
       :action, :host, :from_date, :to_date, :contexts, :group_by,  
       :db_username, :db_name, :db_host, :is_latest
 
-    has_many :sub_results, :table_name => 'appstats_subresults', :foreign_key => 'appstats_result_id', :order => 'count DESC'
+    has_many :sub_results, :class_name => "Appstats::SubResult", :table_name => 'appstats_subresults', :foreign_key => 'appstats_result_id', :order => 'count DESC'
     after_save :update_is_latest
 
     def date_to_s
