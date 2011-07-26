@@ -205,7 +205,7 @@ module Appstats
     
       def db_connection
         return Appstats.connection if @custom_query.nil?
-        @backup_config = Appstats.connection.instance_variable_get(:@config)
+        @backup_config =  ActiveRecord::Base.connection.instance_variable_get(:@config)
         custom_connection = @custom_query.db_connection
       end
     
