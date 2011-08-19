@@ -39,8 +39,12 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
     end
     
     desc "Run Rcov"
-    RSpec::Core::RakeTask.new(:rcov) do |t|
+    task :rcov do
       system "mkdir -p ../public/coverage" unless File.exists?("../public/coverage")
+      Rake::Task['ci:rcov_run'].invoke
+    end
+    
+    RSpec::Core::RakeTask.new(:rcov_run) do |t|
       t.pattern = "./spec/**/*spec.rb"
       t.rcov = true
       t.rcov_opts = %w{--exclude osx\/objc,gems\/,spec\/,features\/ --output ../public/coverage}
@@ -48,12 +52,12 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
 
     desc "The Build Succeeded, so tell our monitoring service"
     task :success do
-      FileUtils.cp '/home/deployer/monitor/config/statuses/Appstats.cc.success', '/home/deployer/monitor/log/Appstats.cc', :preserve => false
+      system 'echo "Appstats succeeded, http://cc.cenx.localnet" > /home/deployer/monitor/log/Appstats.cc'
     end
 
     desc "The Build failed, so tell our monitoring service"
     task :failure do
-      FileUtils.cp '/home/deployer/monitor/config/statuses/Appstats.cc.failure', '/home/deployer/monitor/log/Appstats.cc', :preserve => false
+      system "curl http://cc.cenx.localnet/appstats_local > /home/deployer/monitor/log/Appstats.cc"
     end
 
     namespace :db do
