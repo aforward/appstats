@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.add_dependency('daemons')
   s.add_dependency('net-scp')
   
+  s.add_development_dependency('rake')
   s.add_development_dependency('rspec')
   s.add_development_dependency('ZenTest')
   s.add_development_dependency('standalone_migrations')
