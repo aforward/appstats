@@ -278,8 +278,13 @@ module Appstats
           break if @tokenize_regex.blank?
           m = current_text.match(/^(#{@tokenize_regex_no_spaces})(.*)$/im)
           break if m.nil? || m[1].blank?
-          add_constant(m[1])
+          constant = m[1]
           current_text = m[2]
+          if (!current_text.match(/^[^\s]/).nil? && !constant.match(/^[a-zA-Z]*$/).nil?)
+            current_text = m[0]
+            break
+          end
+          add_constant(constant)
           current_text.strip! unless current_text.nil?
         end
         current_text

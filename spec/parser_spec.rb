@@ -31,13 +31,13 @@ module Appstats
          parser.constants.should == ["\\s+OR(\\s|$)"]
          parser.constants_no_spaces.should == ["OR"]
        end
-
+    
        it "should tokenize multi words" do
          parser = Parser.new(:rules => ":name or :bust", :tokenize => "a 'not a'", :repeating => true)
          parser.tokenize.should == ["\\s+A(\\s|$)","\\s+NOT\\s+A(\\s|$)"]
          parser.tokenize_no_spaces.should == ["A","NOT\\s+A"]
        end
-
+    
      
        it "should espace tokens as required" do
          parser = Parser.new(:tokenize => "( ) abc |")
@@ -55,7 +55,7 @@ module Appstats
        it "should end on constant if tokens present" do
          Parser.new(:rules => ":name", :tokenize => ")").rules.should == [ { :rule => :name, :stop => :end } ]
        end
-
+    
        it "should handle one variable" do
          Parser.new(:rules => ":name").rules.should == [ { :rule => :name, :stop => :end } ]
        end
@@ -208,11 +208,18 @@ module Appstats
         @parser.parse_word(" aa bbb ","bbb",true).should == ["aa", "bbb"]
       end
       
-      it "should remove tokens from the beginning" do
-        parser = Appstats::Parser.new(:tokenize => "xx yy zz")
-        parser.parse_word(" xx yy zz zzaa bbb ",:space).should == ["aa", "bbb"]
-        parser.raw_results.should == [ "xx", "yy", "zz", "zz" ]
+      it "should remove tokens from the beginning (if non alphabet)" do
+        parser = Appstats::Parser.new(:tokenize => "xx1 yy1 zz1")
+        parser.parse_word(" xx1 yy1 zz1 zz1aa bbb ",:space).should == ["aa", "bbb"]
+        parser.raw_results.should == [ "xx1", "yy1", "zz1", "zz1" ]
       end
+
+      it "should not remove tokens from the beginning (if alphabet)" do
+        parser = Appstats::Parser.new(:tokenize => "xx yy zz")
+        parser.parse_word(" xx yy zz zzaa bbb ",:space).should == ["zzaa", "bbb"]
+        parser.raw_results.should == [ "xx", "yy", "zz" ]
+      end
+
     
       it "should remove tokens from the end (:space)" do
         parser = Parser.new(:tokenize => "xx yy zz")
@@ -361,19 +368,19 @@ module Appstats
         parser.parse("( ( a = b ) )").should == true
         parser.raw_results.should == [ "(", "(", { :context_key => "a"}, "=", { :context_value => "b"}, ")", ")" ]
       end
-
+    
       it "should handle tokens with spaces" do
         parser = Parser.new(:rules => ":context", :repeating => true, :tokenize => "like 'not like'")
         parser.parse("a  not like  b").should == true
         parser.raw_results.should == [ { :context => "a"}, "not like", { :context => "b"} ]
       end
-
+    
       it "should handle tokens with many spaces" do
         parser = Parser.new(:rules => ":context", :repeating => true, :tokenize => "like 'not like'")
         parser.parse("a  not   like  b").should == true
         parser.raw_results.should == [ { :context => "a"}, "not   like", { :context => "b"} ]
       end
-
+    
     
       it "should tokenize letters only if spaces between them" do
         parser = Appstats::Parser.new(:rules => ":one :two", :tokenize => "( aa a1 )")
@@ -422,6 +429,11 @@ module Appstats
           parser.results.should == {:operation => "#", :action => "appstats_queries", :date => nil, :host => nil, :group_by => nil, :contexts => "action = abc AND contexts = 'def' || group_by like 'hik'" }
         end
        
+        it "should handle 'in' in context data" do
+          parser = Appstats::Parser.new(:rules => ":context", :repeating => true, :tokenize => "( ) and or || && = <= >= <> < > != like 'not like' in 'not in'")          
+          parser.parse("invisible_member_names = Time Warner Cable")
+          parser.raw_results.should == [ {:context => "invisible_member_names"}, "=", {:context=>"Time Warner Cable"} ]
+        end
         
       end
       
