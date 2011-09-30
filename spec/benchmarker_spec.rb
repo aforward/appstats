@@ -20,6 +20,19 @@ module Appstats
       
     end
     
+    describe "measure" do
+      
+      it "x" do
+        time = @benchmarker.measure("BuildDuration","FooBar") do
+          x = 10
+        end
+        @redis.scard("benchmarks").should == 1
+        @redis.scard("benchmarks:BuildDuration").should == 1
+        @redis.lrange("benchmarks:BuildDuration:FooBar",0,-1).should == [time.real]
+      end
+      
+    end
+    
     describe "record" do
       
       it "should track the title, legend, and point" do

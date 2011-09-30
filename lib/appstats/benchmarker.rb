@@ -1,4 +1,5 @@
 require "redis"
+require "benchmark"
 
 module Appstats
   class Benchmarker
@@ -7,6 +8,14 @@ module Appstats
   
     def initialize(data = {})
       @redis = data[:redis] || Redis.new
+    end
+  
+    def measure(title,legend)
+      time = Benchmark.measure do
+        yield
+      end
+      record(title,legend,time.real)
+      time
     end
   
     def record(title,legend,point)
