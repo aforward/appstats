@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.add_dependency('rails','>=2.3.0')
   s.add_dependency('daemons')
   s.add_dependency('net-scp')
+  s.add_dependency('redis')
   
   s.add_development_dependency('rake')
   s.add_development_dependency('rspec')

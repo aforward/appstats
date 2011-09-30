@@ -4,6 +4,8 @@ require 'rails' unless Object.const_defined?('Rails')
 
 require "#{File.dirname(__FILE__)}/appstats/acts_as_appstatsable"
 require "#{File.dirname(__FILE__)}/appstats/acts_as_auditable"
+require "#{File.dirname(__FILE__)}/appstats/benchmarker"
+require "#{File.dirname(__FILE__)}/appstats/inmemory_redis"
 require "#{File.dirname(__FILE__)}/appstats/code_injections"
 require "#{File.dirname(__FILE__)}/appstats/entry"
 require "#{File.dirname(__FILE__)}/appstats/audit"
