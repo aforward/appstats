@@ -1,5 +1,5 @@
 === 0.0.1 2011-01-05
-
+ 
 * 1 major enhancement:
   * Initial release
   * Followed http://drnicwilliams.com/2006/10/11/generating-new-gems/
