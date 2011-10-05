@@ -52,13 +52,21 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
 
     desc "The Build Succeeded, so tell our monitoring service"
     task :success do
-      system 'echo "Appstats succeeded, http://cc.cenx.localnet" > /home/deployer/monitor/log/Appstats.cc'
+      if File.exists?("/home/deployer/monitor/log")
+        system 'echo "Appstats succeeded, http://cc.cenx.localnet" > /home/deployer/monitor/log/Appstats.cc'
+      else
+        print "BUILD SUCCEEDED, but log directory (/home/deployer/monitor/log) does not exist"
+      end
     end
 
     desc "The Build failed, so tell our monitoring service"
     task :failure do
-      system "curl http://cc.cenx.localnet/appstats_local > /home/deployer/monitor/log/Appstats.cc"
-    end
+      if File.exists?("/home/deployer/monitor/log")
+        system "curl http://cc.cenx.localnet/appstats_local > /home/deployer/monitor/log/Appstats.cc"
+      else
+        raise "BUILD FAILED, but log directory (/home/deployer/monitor/log) does not exist"
+      end
+    end    
 
     namespace :db do
 
