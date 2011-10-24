@@ -292,10 +292,36 @@ class Benchmark
     return count($this->points);
   }
   
+  public function googleChartPoints() 
+  {
+    $allValues = $this->points;
+    $maxValue = $this->getMax();
+    
+    $encodeMap = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
+    $encodeMapLength = strlen($encodeMap);
+    $chartData = '';
+
+    foreach($allValues as $numericVal)
+    {
+      $scaledValue = floor($encodeMapLength * $encodeMapLength * $numericVal / $maxValue);
+      if($scaledValue > ($encodeMapLength * $encodeMapLength) - 1) {
+        $chartData .= "..";
+      } else if ($scaledValue < 0) {
+        $chartData .= '__';
+      } else {
+
+        $quotient = floor($scaledValue / $encodeMapLength);
+        $remainder = $scaledValue - $encodeMapLength * $quotient;
+        $chartData .= $encodeMap[$quotient] . $encodeMap[$remainder];
+      }
+    }
+    return $chartData;
+  }  
+
   public static function maxWithBuffer($allBenchmarks, $buffer = 0)
   {
-    $true_max = max(array_map(function($b) { return $b->getMax(); },$allBenchmarks));
-    return self::roundUp($true_max * (1 + $buffer));
+    $max = max(array_map(function($b) { return $b->getMax(); },$allBenchmarks));
+    return self::roundUp($max * (1 + $buffer));
   }
   
   public static function roundUp($value) 
@@ -303,5 +329,6 @@ class Benchmark
     $precisionFactor = 1;
     return ceil( $value * $precisionFactor )/$precisionFactor; 
   }
+  
 }
 ?>

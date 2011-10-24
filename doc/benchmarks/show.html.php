@@ -1,5 +1,4 @@
 <?php
-
   $allBenchmarks = $GLOBALS["current_benchmarks"];
   $b = $allBenchmarks[0];
 
@@ -23,7 +22,8 @@
   
   $legends = implode(array_map(function($b) { return $b->getLegend(); }, $allBenchmarks),"|");
   $lineWidths = implode(array_map(function($b) { return $b->getLineWidth(); }, $allBenchmarks),"|");
-  $points = implode(array_map(function($b) { return implode($b->getPoints(),","); }, $allBenchmarks),"|");
+  $points = "t:" . implode(array_map(function($b) { return implode($b->getPoints(),","); }, $allBenchmarks),"|");
+  // $points = "e:" . implode(array_map(function($b) { return $b->googleChartPoints(); }, $allBenchmarks),",");
   $points_size = array_map(function($b) { return $b->numberOfPoints(); }, $allBenchmarks);
   
   $allMarkers = array();
@@ -43,7 +43,7 @@
     , "cht=lc"
     , "chco={$colours_param}"
     , "chg={$graph_lines}"
-    , "chd=t:{$points}"
+    , "chd={$points}"
     , "chdl={$legends}"
     , "chls={$lineWidths}"
     , "chm={$marker_param}"
