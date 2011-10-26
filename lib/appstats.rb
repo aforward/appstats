@@ -2,11 +2,18 @@ require 'rubygems'
 require 'active_record'
 
 #requiring rails is a Rails3 thing I believe
-# so two checks, 1) the rails hasn't been required somewhere else, and 2) ignore a 'rescue'
-# as we are using bundler so things should be setup properly
+# so two checks, 1) the rails hasn't been required somewhere else, and 2) that it is available
+# there have been expections thrown trying to require 'rails' 2.3.x versions
 begin
-  require 'rails' unless Object.const_defined?('Rails')
-rescue
+require 'rails' if !Object.const_defined?('Rails')
+rescue LoadError
+  module Rails
+    class << self    
+      def env
+        return ENV['RAILS_ENV'] || "development"
+      end
+    end
+  end
 end
 
 require "#{File.dirname(__FILE__)}/appstats/acts_as_appstatsable"
