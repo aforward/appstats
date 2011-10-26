@@ -16,6 +16,14 @@ rescue LoadError
   end
 end
 
+unless `ruby -v`.index("ruby 1.8.7").nil?
+  begin
+    require 'system_timer'
+  rescue LoadError
+    puts "INSTALL System Timer (gem install system_timer) or upgrade to ruby >= 1.9.2"
+  end
+end
+
 require "#{File.dirname(__FILE__)}/appstats/acts_as_appstatsable"
 require "#{File.dirname(__FILE__)}/appstats/acts_as_auditable"
 require "#{File.dirname(__FILE__)}/appstats/benchmarker"
