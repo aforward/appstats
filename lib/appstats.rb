@@ -1,6 +1,13 @@
 require 'rubygems'
 require 'active_record'
-require 'rails' unless Object.const_defined?('Rails')
+
+#requiring rails is a Rails3 thing I believe
+# so two checks, 1) the rails hasn't been required somewhere else, and 2) ignore a 'rescue'
+# as we are using bundler so things should be setup properly
+begin
+  require 'rails' unless Object.const_defined?('Rails')
+rescue
+end
 
 require "#{File.dirname(__FILE__)}/appstats/acts_as_appstatsable"
 require "#{File.dirname(__FILE__)}/appstats/acts_as_auditable"
