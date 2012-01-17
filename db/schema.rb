@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110510173343) do
+ActiveRecord::Schema.define(:version => 20120118173343) do
 
   create_table "appstats_action_context_keys", :force => true do |t|
     t.string   "action_name"
@@ -68,6 +68,9 @@ ActiveRecord::Schema.define(:version => 20110510173343) do
     t.datetime "updated_at"
   end
 
+  add_index "appstats_contexts", ["appstats_entry_id", "context_key", "context_float"], :name => "index_contexts_entry_key_float"
+  add_index "appstats_contexts", ["appstats_entry_id", "context_key", "context_int"], :name => "index_contexts_entry_key_int"
+  add_index "appstats_contexts", ["appstats_entry_id", "context_key", "context_value"], :name => "index_contexts_entry_key_value"
   add_index "appstats_contexts", ["context_key", "context_float"], :name => "index_appstats_contexts_on_context_key_and_context_float"
   add_index "appstats_contexts", ["context_key", "context_int"], :name => "index_appstats_contexts_on_context_key_and_context_int"
   add_index "appstats_contexts", ["context_key", "context_value"], :name => "index_appstats_contexts_on_context_key_and_context_value"
