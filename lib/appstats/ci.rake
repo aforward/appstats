@@ -23,7 +23,6 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
     desc "Run QA"
     task :qa do
       Rake::Task['ci:rspec'].invoke
-      Rake::Task['ci:rcov'].invoke
     end
 
     desc "Run Rspec"
@@ -37,18 +36,6 @@ unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:
       t.rspec_opts = ["--format", "html", "--out", "../public/rspec.html"]
       t.fail_on_error = true
     end
-    
-    desc "Run Rcov"
-    task :rcov do
-      system "mkdir -p ../public/coverage" unless File.exists?("../public/coverage")
-      Rake::Task['ci:rcov_run'].invoke
-    end
-    
-    RSpec::Core::RakeTask.new(:rcov_run) do |t|
-      t.pattern = "./spec/**/*spec.rb"
-      t.rcov = true
-      t.rcov_opts = %w{--exclude osx\/objc,gems\/,spec\/,features\/ --output ../public/coverage}
-    end    
     
     desc "The Build Succeeded, so tell our monitoring service"
     task :success do

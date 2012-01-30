@@ -10,7 +10,6 @@ if ENV['RAILS_BUNDLE_FIRST']
 end
 
 require 'appstats/tasks'
-require 'metric_fu'
 require 'rspec/core/rake_task'
 require 'tasks/standalone_migrations'
 
@@ -25,10 +24,4 @@ end
 RSpec::Core::RakeTask.new(:spec) do |t|
 	t.pattern = "spec/*_spec.rb"
 	t.rspec_opts = "--color"
-end
-
-MetricFu::Configuration.run do |config|
-  config.metrics = [:rcov]
-  config.rcov[:test_files] = ['spec/*_spec.rb']
-  config.rcov[:rcov_opts] << '-Ispec'
 end
