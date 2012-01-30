@@ -1,6 +1,6 @@
 module Appstats
   class ContextValue < ActiveRecord::Base
-    set_table_name "appstats_context_values"
+    self.table_name = "appstats_context_values"
     establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
     
     attr_accessible :name, :status

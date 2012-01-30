@@ -1,6 +1,6 @@
 module Appstats
   class TestObject < ActiveRecord::Base
-    set_table_name "appstats_test_objects"
+    self.table_name = "appstats_test_objects"
     acts_as_appstatsable
     acts_as_auditable
 

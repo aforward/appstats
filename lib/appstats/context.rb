@@ -1,7 +1,7 @@
 
 module Appstats
   class Context < ActiveRecord::Base
-    set_table_name "appstats_contexts"
+    self.table_name = "appstats_contexts"
     establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
     
     belongs_to :entry, :class_name => "Appstats::Entry", :foreign_key => "appstats_entry_id"

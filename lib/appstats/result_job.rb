@@ -1,6 +1,6 @@
 module Appstats
   class ResultJob < ActiveRecord::Base
-    set_table_name "appstats_result_jobs"
+    self.table_name = "appstats_result_jobs"
     establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
 
     attr_accessible :name, :frequency, :status, :query, :last_run_at, :query_type

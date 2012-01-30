@@ -1,6 +1,6 @@
 module Appstats
   class Result < ActiveRecord::Base
-    set_table_name "appstats_results"
+    self.table_name = "appstats_results"
     establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
 
     attr_accessible :name, :result_type, 

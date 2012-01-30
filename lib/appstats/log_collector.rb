@@ -3,7 +3,7 @@ require 'net/scp'
 
 module Appstats
   class LogCollector < ActiveRecord::Base
-    set_table_name "appstats_log_collectors"
+    self.table_name = "appstats_log_collectors"
     establish_connection "appstats_#{Rails.env}" if configurations.keys.include?("appstats_#{Rails.env}")
     
     @@downloaded_log_directory = nil
