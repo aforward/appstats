@@ -38,8 +38,12 @@ module Appstats
               puts "Creating migrate directory"
               mkdir @app_migrate
             end
-            puts "Moving migrations files from:\n> #{@gem_migrations}\nTo\n> #{@app_migrate}"
-            system "cp -R #{@gem_migrations}/* #{@app_migrate}"
+            if @gem_migrations == @app_migrate
+              puts "Migrations already in the right place! (#{@app_migrate})"
+            else
+              puts "Moving migrations files from:\n> #{@gem_migrations}\nTo\n> #{@app_migrate}"
+              system "cp -R #{@gem_migrations}/* #{@app_migrate}"
+            end
           end
           
           desc "Install the logger for this gem (for application instances that log statistics)"
