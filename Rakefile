@@ -18,7 +18,7 @@ import 'lib/appstats/ci.rake'
 
 begin
   MigratorTasks.new do |t|
-    t.migrations = "db/migrations"
+    t.migrations = "db/migrate"
     t.config = "db/config.yml"
     t.schema = "db/schema.rb"
     t.env = "DB"

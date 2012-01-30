@@ -14,7 +14,7 @@ module Appstats
       here = File.expand_path(File.dirname(File.dirname(File.dirname((__FILE__)))))
       @base = base
       @vendor = "#{here}/vendor"
-      @gem_migrations = "#{here}/db/migrations"
+      @gem_migrations = "#{here}/db/migrate"
       @app_migrate = "#{base}/db/migrate"
       @config = "#{base}/db/config.yml"
       @schema = "#{base}/db/schema.rb"

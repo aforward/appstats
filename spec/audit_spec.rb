@@ -90,6 +90,7 @@ module Appstats
         Audit.count.should == 15
         
         all = Audit.all
+        
         all[0].column_type.should == nil
         all[0].obj_type.should == nil
         
@@ -97,11 +98,11 @@ module Appstats
         all[1].column_type.should == "varchar(255)"
         all[1].obj_type.should == "string"
 
-        all[2].obj_attr.should == "created_at"
+        all[2].obj_attr.should == "blah_timestamp"
         all[2].column_type.should == "datetime"
         all[2].obj_type.should == "datetime"
 
-        all[3].obj_attr.should == "blah_timestamp"
+        all[3].obj_attr.should == "created_at"
         all[3].column_type.should == "datetime"
         all[3].obj_type.should == "datetime"
 
@@ -109,12 +110,12 @@ module Appstats
         all[4].column_type.should == "datetime"
         all[4].obj_type.should == "datetime"
 
-        all[5].obj_attr.should == "id"
-        all[5].column_type.should == "int(11)"
+        all[5].obj_attr.should == "blah_decimal"
+        all[5].column_type.should == "decimal(10,0)"
         all[5].obj_type.should == "integer"
 
-        all[6].obj_attr.should == "blah_decimal"
-        all[6].column_type.should == "decimal(10,0)"
+        all[6].obj_attr.should == "id"
+        all[6].column_type.should == "int(11)"
         all[6].obj_type.should == "integer"
 
         all[7].obj_attr.should == "blah_boolean"

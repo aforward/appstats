@@ -1,7 +1,6 @@
 pkg/*
 *.gem
 .bundle
-db/migrate
 doc
 config/appstats.yml
 config/initializers/appstats.rb

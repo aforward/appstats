@@ -12,9 +12,7 @@ Gem::Specification.new do |s|
   s.summary     = %q{Provide usage statistics about how your application is being used}
   s.description = %q{Provide usage statistics about how your application is being used}
 
-  # Models are to be used in Rails 3 environment, but the logger can work with Rails 2 apps
-  # But, for testing appstats itself, you will need Rails 3
-  s.add_dependency('rails','>=2.3.0')
+  s.add_dependency('rails','>=3.2.1')
   s.add_dependency('daemons')
   s.add_dependency('net-scp')
   s.add_dependency('redis')
@@ -23,7 +21,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency('rspec')
   s.add_development_dependency('ZenTest')
   s.add_development_dependency('standalone_migrations')
-  s.add_development_dependency('mysql')
+  s.add_development_dependency('mysql2')
   s.add_development_dependency('metric_fu')
   s.add_development_dependency('guard-rspec')
   s.add_development_dependency('autotest-fsevent') if RUBY_PLATFORM =~ /darwin/i
