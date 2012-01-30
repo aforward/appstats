@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency('ZenTest')
   s.add_development_dependency('standalone_migrations')
   s.add_development_dependency('mysql2')
-  s.add_development_dependency('metric_fu')
   s.add_development_dependency('guard-rspec')
   s.add_development_dependency('autotest-fsevent') if RUBY_PLATFORM =~ /darwin/i
   s.add_development_dependency('rb-fsevent') if RUBY_PLATFORM =~ /darwin/i

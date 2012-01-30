@@ -94,49 +94,61 @@ module Appstats
         all[0].column_type.should == nil
         all[0].obj_type.should == nil
         
-        all[1].obj_attr.should == "blah_string"
-        all[1].column_type.should == "varchar(255)"
-        all[1].obj_type.should == "string"
-
-        all[2].obj_attr.should == "blah_timestamp"
+        all[1].obj_attr.should == "id"
+        all[1].column_type.should == "int(11)"
+        all[1].obj_type.should == "integer"
+        
+        all[2].obj_attr.should == "created_at"
         all[2].column_type.should == "datetime"
         all[2].obj_type.should == "datetime"
 
-        all[3].obj_attr.should == "created_at"
+        all[3].obj_attr.should == "updated_at"
         all[3].column_type.should == "datetime"
         all[3].obj_type.should == "datetime"
+        
+        all[4].obj_attr.should == "blah_binary"
+        all[4].column_type.should == "blob"
+        all[4].obj_type.should == "binary"
+        
+        all[5].obj_attr.should == "blah_boolean"
+        all[5].column_type.should == "tinyint(1)"
+        all[5].obj_type.should == "boolean"
 
-        all[4].obj_attr.should == "updated_at"
-        all[4].column_type.should == "datetime"
-        all[4].obj_type.should == "datetime"
+        all[6].obj_attr.should == "blah_date"
+        all[6].column_type.should == "date"
+        all[6].obj_type.should == "date"
 
-        all[5].obj_attr.should == "blah_decimal"
-        all[5].column_type.should == "decimal(10,0)"
-        all[5].obj_type.should == "integer"
+        all[7].obj_attr.should == "blah_datetime"
+        all[7].column_type.should == "datetime"
+        all[7].obj_type.should == "datetime"
+        
+        all[8].obj_attr.should == "blah_decimal"
+        all[8].column_type.should == "decimal(10,0)"
+        all[8].obj_type.should == "integer"
 
-        all[6].obj_attr.should == "id"
-        all[6].column_type.should == "int(11)"
-        all[6].obj_type.should == "integer"
+        all[9].obj_attr.should == "blah_float"
+        all[9].column_type.should == "float"
+        all[9].obj_type.should == "float"
 
-        all[7].obj_attr.should == "blah_boolean"
-        all[7].column_type.should == "tinyint(1)"
-        all[7].obj_type.should == "boolean"
+        all[10].obj_attr.should == "blah_integer"
+        all[10].column_type.should == "int(11)"
+        all[10].obj_type.should == "integer"
 
-        all[8].obj_attr.should == "blah_binary"
-        all[8].column_type.should == "blob"
-        all[8].obj_type.should == "binary"
+        all[11].obj_attr.should == "blah_string"
+        all[11].column_type.should == "varchar(255)"
+        all[11].obj_type.should == "string"
+        
+        all[12].obj_attr.should == "blah_text"
+        all[12].column_type.should == "text"
+        all[12].obj_type.should == "text"
+        
+        all[13].obj_attr.should == "blah_time"
+        all[13].column_type.should == "time"
+        all[13].obj_type.should == "time"
 
-        all[9].obj_attr.should == "blah_time"
-        all[9].column_type.should == "time"
-        all[9].obj_type.should == "time"
-
-        all[10].obj_attr.should == "blah_text"
-        all[10].column_type.should == "text"
-        all[10].obj_type.should == "text"
-
-        all[11].obj_attr.should == "blah_integer"
-        all[11].column_type.should == "int(11)"
-        all[11].obj_type.should == "integer"
+        all[14].obj_attr.should == "blah_timestamp"
+        all[14].column_type.should == "datetime"
+        all[14].obj_type.should == "datetime"
       end
       
     end
@@ -311,6 +323,7 @@ module Appstats
         Audit.count.should == 5
         
         all = Audit.all
+        
         audit = all[0]
         audit.table_name.should == "appstats_test_objects"
         audit.obj_name.should == "Appstats::TestObject"
@@ -325,6 +338,17 @@ module Appstats
         audit = all[1]
         audit.table_name.should == "appstats_test_objects"
         audit.obj_name.should == "Appstats::TestObject"
+        audit.obj_attr.should == 'id'
+        audit.obj_id.should == t.id
+        audit.action.should == "created"
+        audit.old_value.should == nil
+        audit.new_value.should == "#{t.id}"
+        audit.old_value_full.should == nil
+        audit.new_value_full.should == "#{t.id}"
+
+        audit = all[2]
+        audit.table_name.should == "appstats_test_objects"
+        audit.obj_name.should == "Appstats::TestObject"
         audit.obj_attr.should == 'name'
         audit.obj_id.should == t.id
         audit.action.should == "created"
@@ -333,7 +357,7 @@ module Appstats
         audit.old_value_full.should == nil
         audit.new_value_full.should == 'a'
 
-        audit = all[2]
+        audit = all[3]
         audit.table_name.should == "appstats_test_objects"
         audit.obj_name.should == "Appstats::TestObject"
         audit.obj_attr.should == 'created_at'
@@ -344,7 +368,7 @@ module Appstats
         audit.old_value_full.should == nil
         audit.new_value_full.should == t.created_at.strftime("%Y-%m-%d %H:%M:%S")
 
-        audit = all[3]
+        audit = all[4]
         audit.table_name.should == "appstats_test_objects"
         audit.obj_name.should == "Appstats::TestObject"
         audit.obj_attr.should == 'updated_at'
